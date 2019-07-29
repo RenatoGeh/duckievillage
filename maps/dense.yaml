@@ -1,0 +1,163 @@
+tiles:
+- [curve_right/N, straight/W,    straight/W,    straight/W,    straight/W,    curve_left/N,  grass]
+- [straight/N,    grass,         grass,         grass,         grass,         straight/N,    grass]
+- [curve_right/W, curve_left/N,  grass,         curve_right/N, straight/W,    3way_left/N,   grass]
+- [grass,         straight/N,    grass,         straight/N,    asphalt,       straight/N,    grass]
+- [grass,         3way_right/N,  straight/W,    3way_left/N,   asphalt,       straight/N,    grass]
+- [grass,         straight/N,    asphalt,       straight/N,    asphalt,       straight/N,    grass]
+- [grass,         curve_right/W, straight/W,    3way_right/W,  straight/W,    curve_left/E,  grass]
+
+
+objects:
+
+- kind: sign_stop
+  pos: [4.95, 1.95]
+  rotate: 270
+  height: 0.18
+
+- kind: sign_right_T_intersect
+  pos: [4.95, 3.05]
+  rotate: 90
+  height: 0.18
+
+- kind: sign_left_T_intersect
+  pos: [6.05, 1.95]
+  rotate: 270
+  height: 0.18
+
+- kind: sign_stop
+  pos: [6.05, 1.85]
+  rotate: 180
+  height: 0.18
+
+- kind: sign_stop
+  pos: [6.05, 3.05]
+  rotate: 90
+  height: 0.18
+
+- kind: sign_T_intersect
+  pos: [6.05, 3.15]
+  rotate: 180
+  height: 0.18
+
+- kind: sign_right_T_intersect
+  pos: [2.05, 3.95]
+  rotate: 270
+  height: 0.18
+
+- kind: sign_stop
+  pos: [2.05, 5.05]
+  rotate: 90
+  height: 0.18
+
+- kind: sign_left_T_intersect
+  pos: [0.95, 5.05]
+  rotate: 90
+  height: 0.18
+
+- kind: sign_stop
+  pos: [0.95, 5.15]
+  rotate: 0
+  height: 0.18
+
+- kind: sign_stop
+  pos: [0.95, 3.95]
+  rotate: 270
+  height: 0.18
+
+- kind: sign_T_intersect
+  pos: [0.95, 3.85]
+  rotate: 0
+  height: 0.18
+
+- kind: sign_stop
+  pos: [2.95, 3.95]
+  rotate: 270
+  height: 0.18
+
+- kind: sign_right_T_intersect
+  pos: [2.95, 5.05]
+  rotate: 90
+  height: 0.18
+
+- kind: sign_left_T_intersect
+  pos: [4.05, 3.95]
+  rotate: 270
+  height: 0.18
+
+- kind: sign_stop
+  pos: [4.05, 3.85]
+  rotate: 180
+  height: 0.18
+
+- kind: sign_stop
+  pos: [4.05, 5.05]
+  rotate: 90
+  height: 0.18
+
+- kind: sign_T_intersect
+  pos: [4.05, 5.15]
+  rotate: 180
+  height: 0.18
+
+- kind: sign_right_T_intersect
+  pos: [2.95, 5.95]
+  rotate: 0
+  height: 0.18
+
+- kind: sign_stop
+  pos: [4.05, 5.95]
+  rotate: 180
+  height: 0.18
+
+- kind: sign_stop
+  pos: [2.95, 7.05]
+  rotate: 0
+  height: 0.18
+
+- kind: sign_left_T_intersect
+  pos: [4.05, 7.05]
+  rotate: 180
+  height: 0.18
+
+- kind: sign_left_T_intersect
+  pos: [4.05, 7.05]
+  rotate: 180
+  height: 0.18
+
+- kind: sign_stop
+  pos: [4.15, 7.05]
+  rotate: 90
+  height: 0.18
+
+- kind: building
+  pos: [6.63, 0.27]
+  rotate: 180
+  height: 0.6
+
+- kind: building
+  pos: [0.43000000000000005, 3.61]
+  rotate: 270
+  height: 0.6
+
+- kind: building
+  pos: [0.42999999999999994, 4.91]
+  rotate: 0
+  height: 0.6
+
+- kind: sign_pedestrian
+  pos: [3.34, 0]
+  rotate: 0
+  height: 0.18
+
+- kind: sign_pedestrian
+  pos: [3.34, 1]
+  rotate: 180
+  height: 0.18
+
+- kind: duckie
+  pos: [0.85, 6.74]
+  rotate: 129.79
+  height: 0.0397
+
+tile_size: 0.585
