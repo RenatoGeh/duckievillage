@@ -26,6 +26,7 @@
 
 import sys
 import pyglet
+import numpy as np
 from pyglet.window import key
 import gym
 import gym_duckietown
@@ -68,7 +69,7 @@ def update(dt):
   # At each step, the agent accepts an action array (also accepts numpy.arrays):
   #   action = [forward_velocity, steering_angle]
   # Play with the actions and figure out how to make your own remote control duckiebot!
-  action = [0.0, 0.0]
+  action = np.array([0.0, 0.0])
 
   # The key_handler object handles keyboard events. It's basically a map indexed by Pyglet keys
   # with values True if the key is being held, or False otherwise.
