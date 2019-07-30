@@ -362,13 +362,17 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     # Do some mathemagics.
     return x*r - 2*self.road_tile_size/3, h - y*r
 
-  def add_duckie(self, x, y, static = True):
+  def add_duckie(self, x, y = None, static = True):
+    if y is None:
+      x, y = x[0], x[1]
     obj = _get_obj_props('duckie', x, y, static)
     self.objects.append(gym_duckietown.objects.DuckieObj(obj, False,
                                                          gym_duckietown.simulator.SAFETY_RAD_MULT,
                                                          self.road_tile_size))
 
-  def add_cone(self, x, y):
+  def add_cone(self, x, y = None):
+    if y is None:
+      x, y = x[0], x[1]
     obj = _get_obj_props('cone', x, y, True)
     self.objects.append(gym_duckietown.objects.WorldObj(obj, False,
                                                         gym_duckietown.simulator.SAFETY_RAD_MULT))
