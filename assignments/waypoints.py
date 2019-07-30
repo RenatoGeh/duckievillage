@@ -51,7 +51,7 @@ env = DuckievillageEnv(
   top_down = False
 )
 # Set mark-mode whenever we run waypoints.py with the -m or --mark-waypoints flag.
-waypoints = duckievillage.Waypoints('--read-from-file' in sys.argv, env)
+waypoints = duckievillage.Waypoints(env, '--read-from-file' in sys.argv)
 
 env.reset()
 env.render()

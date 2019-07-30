@@ -26,8 +26,9 @@ WINDOW_HEIGHT = 600
 # waypoints to a file. When we're not in mark mode, we'll read waypoints from a file and execute
 # the route.
 class Waypoints:
-  def __init__(self, read = True, env = None, filepath = 'waypoints.txt'):
+  def __init__(self, env, read = True, filepath = 'waypoints.txt'):
     self._i = 0
+    self._env = env
     if not read:
       self._mark = True
       self._waypoints = []
@@ -42,7 +43,7 @@ class Waypoints:
   def mark(self, px, py, x, y):
     if self._mark:
       self._waypoints.append((px, py, x, y))
-      env.add_cone(px, py)
+      self._env.add_cone(px, py)
 
   # Let's render waypoints.
   def render(self):
@@ -133,6 +134,7 @@ class TopoGraph:
     V[p] = True
     g[p] = 0
     print("Start: {}, End: {}".format(p, q))
+    # We use Manhattan's as heuristics.
     heapq.heappush(P, (0+_manhattan_dist(p, q), p))
     while len(P) != 0:
       f, n = heapq.heappop(P)
@@ -143,11 +145,13 @@ class TopoGraph:
         m, mv, = None, math.inf
         u = q
         l = None
+        # Greedily search for minimal tiles.
         while u != p:
           for c in self._L[u]:
             if c == p:
               m = p
               break
+            # Don't let it infinitely loop! This only works in our domain, not general.
             if c != l and c in V:
               v = K[c]
               if v < mv:
@@ -158,6 +162,7 @@ class TopoGraph:
         return R
       for c in self._L[n]:
         if c not in V:
+          # Update unseen children.
           g[c] = g[n] + 1
           V[c] = True
           cost = g[c] + _manhattan_dist(c, q)
@@ -369,10 +374,36 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
 
 
   # This function checks whether we've reached a waypoint (up to some error).
-  def arrived(self, x, y):
+  def arrived(self, x, y = None):
     from numpy.linalg import norm
-    return norm(np.array([x, y])-self.get_position()) < 0.1
+    v = np.array([x, y]) if y is not None else x
+    return norm(v-self.get_position()) < 0.1
 
+  # Returns the angle relative to the Duckiebot's position and a target position.
+  def angle_target(self, t):
+    # This is the Duckiebot's pose.
+    s = np.delete(self.get_dir_vec(), 1)
+    # Get the vector representing the "distance" between Duckie and its target.
+    t -= self.get_position()
+    from numpy.linalg import norm
+    # Normalize vectors to unit size.
+    u, v = s/norm(s), t/norm(t)
+    # Do some basic trig and clip to [-1, 1] range.
+    return np.arccos(np.clip(np.dot(u, v), -1, 1))
+
+  # Returns the sine between the Duckiebot's vector direction + position and the target's position.
+  # This effectively gives a finer measure on "how good" is our heading towards the target. The
+  # sibling function angle_target returns the angle extracted from the cosine of two vectors.
+  # Because the cosine is zero from both limits (x -> 0^+ and x -> 0^-), we end up unable to
+  # differenciate between coming from "below" or "above". This function takes care of this by
+  # returning the sine (which is "zero-sensitive", i.e. limits on zero are not equal) instead of
+  # the arccosine.
+  def sine_target(self, t):
+    s = np.delete(self.get_dir_vec(), 1)
+    t -= self.get_position()
+    from numpy.linalg import norm
+    u, v = s/norm(s), t/norm(t)
+    return np.cross(u, v)/(norm(u, ord=1)*norm(v, ord=1))
 
 def _get_obj_props(kind, x, y, static = True):
   mesh = gym_duckietown.objmesh.ObjMesh.get(kind)
