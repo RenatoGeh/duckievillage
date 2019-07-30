@@ -104,8 +104,9 @@ def _manhattan_dist(p, q):
 
 # A topological graph of a Duckietown map.
 class TopoGraph:
-  def __init__(self):
+  def __init__(self, r):
     self._L = {}
+    self._r = r
 
   def add_node(self, p):
     if p not in self._L:
@@ -133,15 +134,13 @@ class TopoGraph:
     # Choose any node as root.
     V[p] = True
     g[p] = 0
-    print("Start: {}, End: {}".format(p, q))
     # We use Manhattan's as heuristics.
     heapq.heappush(P, (0+_manhattan_dist(p, q), p))
     while len(P) != 0:
       f, n = heapq.heappop(P)
-      print("  Node: {}, f(n) = {}".format(n, f))
       if n == q:
         # Backtrack.
-        R = [q]
+        R = [(np.array(q)+0.5)*self._r]
         m, mv, = None, math.inf
         u = q
         l = None
@@ -158,7 +157,8 @@ class TopoGraph:
                 m, mv = c, mv
           l = u
           u = m
-          R.insert(0, u)
+          R.append((np.array(u)+0.5)*self._r)
+        # Returns a stack with the coordinates in reverse order.
         return R
       for c in self._L[n]:
         if c not in V:
@@ -172,8 +172,8 @@ class TopoGraph:
     # The graph is not connected.
     return None
 
-def _create_topo_graph(w: int, h: int, tiles: dict) -> TopoGraph:
-  G = TopoGraph()
+def _create_topo_graph(w: int, h: int, tiles: dict, r: float) -> TopoGraph:
+  G = TopoGraph(r)
   M = [[None] * h for i in range(w)]
   for t in tiles:
     i, j = t['coords']
@@ -210,7 +210,8 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     logger = logging.getLogger('gym-duckietown')
     logger.propagate = False
     self.force_reset()
-    self.topo_graph = _create_topo_graph(self.grid_width, self.grid_height, self.drivable_tiles)
+    self.topo_graph = _create_topo_graph(self.grid_width, self.grid_height, self.drivable_tiles,
+                                         self.road_tile_size)
 
   def render_obs(self):
     obs = self._render_img(
