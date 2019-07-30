@@ -367,6 +367,14 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     # Do some mathemagics.
     return x*r - 2*self.road_tile_size/3, h - y*r
 
+  # The inverse transformation of the above.
+  def unconvert_coords(self, x: float, y: float = None) -> (int, int):
+    if y is None:
+      x, y = x[0], x[1]
+    h = 7 * self.road_tile_size
+    r = WINDOW_HEIGHT / h
+    return round((x+2*self.road_tile_size/3)*r), round(WINDOW_HEIGHT - y*r)
+
   def add_duckie(self, x, y = None, static = True):
     if y is None:
       x, y = x[0], x[1]
