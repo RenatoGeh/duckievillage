@@ -229,6 +229,11 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   def current_tile(self):
     return self.get_grid_coords(self.cur_pos)
 
+  def tile_center(self, i, j=None):
+    if j is None:
+      i, j = i[0], i[1]
+    return (np.array([i, j])+0.5)*self.road_tile_size
+
   def get_position(self):
     return np.delete(self.cur_pos, 1)
 
