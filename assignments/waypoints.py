@@ -16,6 +16,9 @@
 #  - Implement navigation by axes.
 #    + Given two points, navigate _only_ through the x and y axes.
 #
+# Don't forget that you can (and should!) read the Duckievillage code in search of anything that
+# can be useful for your work.
+#
 # Take a look at the Waypoints class in duckievillage.py. Method arrived in DuckievillageEnv may
 # also help you implement waypoint navigation.
 #

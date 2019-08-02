@@ -12,6 +12,9 @@
 # Task:
 #  - Implement navigation by calling the A-star path finding algorithm on the topological map.
 #
+# Don't forget that you can (and should!) read the Duckievillage code in search of anything that
+# can be useful for your work.
+#
 # The topological map is already implemented within the duckievillage module. You can access the
 # map graph through env.topo_graph. This field contains a TopoGraph object that maps all drivable
 # tiles as nodes in the graph, with tiles connected by edges. To find the optimal shortest path

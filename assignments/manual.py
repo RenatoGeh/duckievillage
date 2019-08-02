@@ -12,6 +12,9 @@
 # Task:
 #  - Create a remote control Duckiebot.
 #
+# Don't forget that you can (and should!) read the Duckievillage code in search of anything that
+# can be useful for your work.
+#
 # Don't forget to run this from the Duckievillage root directory!
 # From within the root directory, run python with the -m flag.
 #   python3 -m assignments.manual
