@@ -492,12 +492,18 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   # differenciate between coming from "below" or "above". This function takes care of this by
   # returning the sine (which is "zero-sensitive", i.e. limits on zero are not equal) instead of
   # the arccosine.
-  def sine_target(self, p):
+  def sine_target(self, p, pos = True):
     s = np.delete(self.get_dir_vec(), 1)
-    t = p - self.get_position()
+    if pos:
+      t = p - self.get_position()
+    else:
+      t = p
     from numpy.linalg import norm
     u, v = s/norm(s), t/norm(t)
     return np.cross(u, v)/(norm(u, ord=1)*norm(v, ord=1))
+
+  def sine_vec(self, v):
+    return self.sine_target(v, pos = False)
 
 def _get_obj_props(kind, x, y, static = True):
   mesh = gym_duckietown.objmesh.ObjMesh.get(kind)
