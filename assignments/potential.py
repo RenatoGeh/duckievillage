@@ -10,18 +10,14 @@
 # Failure to follow instructions may result in a zero!
 #
 # Task:
-#  - Implement the potential field algorithm.
-#  - With the potential field implemented, adapt it to play "catch" with Mr. Duckie.
-# Bonus points:
-#  - Create a busier map ./maps/catch.yaml where the potential field algorithm could prove very
-#  efficient.
+#  - Implement the potential field algorithm to play catch with Mr. Duckie.
 #
 # Don't forget that you can (and should!) read the Duckievillage code in search of anything that
 # can be useful for your work.
 #
 # Don't forget to run this from the Duckievillage root directory!
 # From within the root directory, run python with the -m flag.
-#   python3 -m assignments.manual
+#   python3 -m assignments.potential
 #
 # Submission instructions:
 #  0. Add your name and USP number to the header's header.

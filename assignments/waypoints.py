@@ -24,7 +24,7 @@
 #
 # Don't forget to run this from the Duckievillage root directory!
 # From within the root directory, run python with the -m flag.
-#   python3 -m assignments.manual
+#   python3 -m assignments.waypoints
 #
 # Submission instructions:
 #  0. Add your name and USP number to the header's header.
