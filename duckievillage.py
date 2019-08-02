@@ -455,6 +455,17 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     self.objects.append(gym_duckietown.objects.WorldObj(obj, False,
                                                         gym_duckietown.simulator.SAFETY_RAD_MULT))
 
+  def add_walking_duckie(self, x, y = None):
+    if y is None:
+      x, y = x[0], x[1]
+    obj = _get_obj_props('duckie', x, y, False)
+    obj['kind'] = 'duckiebot'
+    d = gym_duckietown.objects.DuckiebotObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT,
+                                            gym_duckietown.simulator.WHEEL_DIST,
+                                            gym_duckietown.simulator.ROBOT_WIDTH,
+                                            gym_duckietown.simulator.ROBOT_LENGTH)
+    self.objects.append(d)
+    return d
 
   # This function checks whether we've reached a waypoint (up to some error).
   def arrived(self, x, y = None):
