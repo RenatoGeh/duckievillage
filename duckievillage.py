@@ -214,23 +214,39 @@ class PolygonMap:
     # Transform coordinates back to Duckietown.
     p = (obj.obj_corners - ((2*self._env.road_tile_size/3), 0))/(2,1)
     # Append Duckietown coordinates.
-    self._polys = np.append(self._polys, [p], axis=0)
+    self._polys = np.append(self._polys, [obj.obj_corners], axis=0)
     # Convert to window coordinates.
     for i, q in enumerate(p):
       p[i] = self._env.unconvert_coords(q)
     # Append window coordinates.
     self._polys_top = np.append(self._polys_top, [p], axis=0)
 
-  # Dilates polygons by some percentage rate.
-  def dilate(self, dilation = 0.25):
-    d = dilation / 2
-    for i, p in enumerate(self._polys):
+  @staticmethod
+  def _dilate_each(polys, dilation = 0.25, abs = False):
+    if not abs:
+      d = dilation / 2
+    for i, p in enumerate(polys):
       # Take the centroid of the polygon.
       c = np.mean(p, axis=0)
       # For each vertex, add dilated vector.
       for j, q in enumerate(p):
-        p[j] = q+(q-c)*d
-        self._polys_top[i][j] = self._env.unconvert_coords(p[j])
+        if abs:
+          from numpy.linalg import norm
+          u = (q-c)
+          u /= norm(u)
+          p[j] = q+u*dilation
+        else:
+          p[j] = q+(q-c)*d
+
+  # Dilates polygons by some percentage rate.
+  def dilate(self, dilation = 0.25, abs = False):
+    PolygonMap._dilate_each(self._polys, dilation, abs)
+    PolygonMap._dilate_each(self._polys_top, dilation, abs)
+
+  def debug(self):
+    for p in self._polys:
+      for q in p:
+        self._env.add_cone(q)
 
   def render(self):
     from pyglet import gl
@@ -243,6 +259,9 @@ class PolygonMap:
       gl.glVertex2f(p[0][0], p[0][1])
       gl.glEnd()
     gl.glPopAttrib(gl.GL_CURRENT_BIT)
+
+  def polygons(self):
+    return self._polys
 
 class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   top_down = False
