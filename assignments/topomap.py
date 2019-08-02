@@ -72,6 +72,8 @@ def on_mouse_press(x, y, button, mods):
       return
     # Convert coordinates from window position to Duckietown coordinates.
     px, py = env.convert_coords(x, y)
+    # The function below calls A-star from the bot's current position to your mouse's position,
+    # returning a list of positions to go to.
     print(env.topo_graph.path(env.current_tile(), env.get_grid_coords((px, 0, py))))
 
 key_handler = key.KeyStateHandler()
