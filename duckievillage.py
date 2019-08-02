@@ -201,6 +201,49 @@ def _create_topo_graph(w: int, h: int, tiles: dict, r: float) -> TopoGraph:
         G.add_edge(t['coords'], u['coords'])
   return G
 
+# Map of object polygons.
+class PolygonMap:
+  def __init__(self, env):
+    # List of polygons relative to the actual Duckietown coordinate system.
+    self._polys = np.empty((0, 4, 2), float)
+    # List of polygons relative to the window coordinate system.
+    self._polys_top = np.empty((0, 4, 2), float)
+    self._env = env
+
+  def add(self, obj):
+    # Transform coordinates back to Duckietown.
+    p = (obj.obj_corners - ((2*self._env.road_tile_size/3), 0))/(2,1)
+    # Append Duckietown coordinates.
+    self._polys = np.append(self._polys, [p], axis=0)
+    # Convert to window coordinates.
+    for i, q in enumerate(p):
+      p[i] = self._env.unconvert_coords(q)
+    # Append window coordinates.
+    self._polys_top = np.append(self._polys_top, [p], axis=0)
+
+  # Dilates polygons by some percentage rate.
+  def dilate(self, dilation = 0.25):
+    d = dilation / 2
+    for i, p in enumerate(self._polys):
+      # Take the centroid of the polygon.
+      c = np.mean(p, axis=0)
+      # For each vertex, add dilated vector.
+      for j, q in enumerate(p):
+        p[j] = q+(q-c)*d
+        self._polys_top[i][j] = self._env.unconvert_coords(p[j])
+
+  def render(self):
+    from pyglet import gl
+    gl.glPushAttrib(gl.GL_CURRENT_BIT)
+    gl.glColor3f(1.0, 0.0, 0.0)
+    for p in self._polys_top:
+      gl.glBegin(gl.GL_LINE_STRIP)
+      for i, q in enumerate(p):
+        gl.glVertex2f(q[0], q[1])
+      gl.glVertex2f(p[0][0], p[0][1])
+      gl.glEnd()
+    gl.glPopAttrib(gl.GL_CURRENT_BIT)
+
 class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   top_down = False
 
@@ -212,6 +255,9 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     self.force_reset()
     self.topo_graph = _create_topo_graph(self.grid_width, self.grid_height, self.drivable_tiles,
                                          self.road_tile_size)
+    self.poly_map = PolygonMap(self)
+    for o in self.objects:
+      self.poly_map.add(o)
 
   def render_obs(self):
     obs = self._render_img(
