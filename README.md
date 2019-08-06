@@ -1,5 +1,7 @@
 # Duckievillage
 
+![Duckievillage](https://raw.githubusercontent.com/RenatoGeh/duckievillage/master/duckieusp.png)
+
 Duckievillage is an adaptation of [Duckietown](https://duckietown.org)'s OpenAI Gym
 [gym-duckietown](https://github.com/duckietown/gym-duckietown) for the undergraduate level [Intro
 to Robotics](https://uspdigital.usp.br/jupiterweb/obterDisciplina?sgldis=MAC0318&nomdis=) (MAC0318)
@@ -15,42 +17,32 @@ course; and to be used as course walkthrough.
 
 ## Installation
 
-Duckievillage requires [Python](https://www.python.org/), [OpenAI Gym](https://gym.openai.com/),
-[gym-duckietown](https://github.com/duckietown/gym-duckietown) and [PyTorch](https://pytorch.org/)
-installed. If you're on Arch Linux, you can easily install everything except `gym-duckietown`
-through the AUR:
+We'll cover installation through Anaconda.
 
-```bash
-yay -S python-gym-git python-pytorch
+1. Install [Anaconda](https://www.anaconda.com/distribution/)
+2. `git clone https://github.com/duckietown/gym-duckietown.git`
+3. `cd gym-duckietown`
+4. `conda env create -f environment.yaml`
+5. `echo $(pwd) >> ~/.bashrc` or `echo $(pwd) >> ~/.zshrc` if you use ZSH
+6. `cd ..`
+7. `git clone https://github.com/RenatoGeh/duckievillage.git`
+8. `cd duckievillage`
+
+Before every terminal session, activate `gym-duckietown`'s environment:
+
+```
+source activate gym-duckietown
 ```
 
-If you're on another distribution or OS, the second easiest way is through
-[Anaconda](https://www.anaconda.com/). Simply download and run the installer. Once that's done,
-install PyTorch and OpenAI Gym:
+Test your environment:
 
-```bash
-conda create -n duckievillage
-conda activate duckievillage
-conda install pip
-conda install pytorch cudatoolkit=9.0 -c pytorch
-pip3 install gym
+```
+python3 -m assignments.manual
 ```
 
-To install `gym-duckietown`:
+You should see the environment for the first exercise.
 
-```bash
-git clone https://github.com/duckietown/gym-duckietown.git
-cd gym-duckietown
-pip3 install -e .
-```
-
-## Usage
-
-To import Duckievillage, simply copy `duckievillage.py` to your working directory and import it:
-
-```python
-import duckievillage
-```
+---
 
 ## Schedule
 
@@ -148,9 +140,9 @@ This is our current course schedule:
 1. RC mobile robot
 2. Image extraction via OpenCV
 
-#### Work on final project (25/09 - 20/11)
+#### Work on final project (25/09 - 03/11)
 
-#### Lecture 8 - Reinforcement Learning (27/11)
+#### Lecture 9 - Reinforcement Learning (27/11)
 
 1. Reinforcement learning
 2. Policy gradient
