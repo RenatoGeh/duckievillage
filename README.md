@@ -23,7 +23,7 @@ We'll cover installation through Anaconda.
 2. `git clone https://github.com/duckietown/gym-duckietown.git`
 3. `cd gym-duckietown`
 4. `conda env create -f environment.yaml`
-5. `echo $(pwd) >> ~/.bashrc` or `echo $(pwd) >> ~/.zshrc` if you use ZSH
+5. `echo "export PYTHONPATH=\"${PYTHONPATH}:$(pwd)\"" >> ~/.bashrc`
 6. `cd ..`
 7. `git clone https://github.com/RenatoGeh/duckievillage.git`
 8. `cd duckievillage`
