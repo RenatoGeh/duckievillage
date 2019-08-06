@@ -59,36 +59,34 @@ This is our current course schedule:
 #### Lecture 1 - Introduction (07/08)
 
 1. Intro to Robotics
-2. Simulator (`gym-duckietown`)
+2. Simulator (Duckievillage + `gym-duckietown`)
 
 ##### Classwork / Homework
 
 1. Manual steering
 2. Waypoint navigation
 
-#### Lecture 2 - Route Planning (14/08)
+#### Lecture 2 - Route Planning 1 (14/08)
 
 1. Route planning
 2. Topological maps
-3. Polygon maps
-4. Graph search
-5. Potential fields
+3. Graph search
 
 ##### Classwork / Homework
 
-1. A<sup>*</sup> on topological map to find and execute route
-2. "Online" potential field for solving the "catch" game (with duckies!)
+1. BFS and A<sup>*</sup> on topological map to find and execute route
+2. Execute route with finer route planning (e.g. smooth curves, drive only on right-side of lane,
+   etc.)
 
-#### Lecture 3 - Supervised Learning (21/08)
+#### Lecture 3 - Route Planning 2 (21/08)
 
-1. Supervised learning
-2. Classification
-3. Perceptrons, MLP
-4. PyTorch
+1. Polygon maps
+2. Potential fields
 
 ##### Classwork / Homework
 
-1. Apply classification on the MNIST dataset
+1. "Online" potential field for solving the "catch" game (with duckies!)
+2. Adapt potential field to usual traffic rules
 
 #### Lecture 4 - Localization (28/08)
 
@@ -103,17 +101,16 @@ This is our current course schedule:
 
 #### BREAK (04/09)
 
-#### Lecture 5 - Image Processing (11/09)
+#### Lecture 5 - Supervised Learning (11/09)
 
-1. Image processing
-2. Linear image filters
-3. Binarization
-4. Line detection
-5. Convolution
+1. Supervised learning
+2. Classification
+3. Perceptrons, MLP
+4. PyTorch
 
 ##### Classwork / Homework
 
-1. Apply image filters on dataset
+1. Apply classification on the MNIST dataset
 
 #### Lecture 6 - Imitation Learning (18/09)
 
@@ -127,19 +124,31 @@ This is our current course schedule:
 1. CNN filter visualization
 2. Execute learned policy on the `gym-duckietown` simulator
 
-#### Lecture 7 - Mobile Robots (25/09)
+#### Lecture 7 - Mobile Robots 1 (25/09)
 
 1. Intro to mobile robots
 2. Navigation
 3. Lego NXT Mindstorm Interface
 4. PID Control
-5. Define group projects
+5. Define final projects
 
 ##### Classwork / Homework
 
 1. Robot assembly
 
-#### Work on final project (02/10 - 20/11)
+#### Lecture 8 - Mobile Robots 2 (02/10)
+
+1. Master-slave architecture
+2. Raspberry Pi
+3. Message passing
+4. Navigation and sensoring via USB
+
+##### Classwork / Homework
+
+1. RC mobile robot
+2. Image extraction via OpenCV
+
+#### Work on final project (25/09 - 20/11)
 
 #### Lecture 8 - Reinforcement Learning (27/11)
 
