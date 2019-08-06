@@ -116,9 +116,42 @@ class TopoGraph:
     self._L[p][q] = True
     self._L[q][p] = True
 
+  def invalid_tile(self, p, q):
+    return p not in self._L or q not in self._L
+
+  # Breadth-first search
+  def bfs(self, p, q):
+    if self.invalid_tile(p, q):
+      print("Can't get there! Source or target are not drivable.")
+      return None
+    # BFS Queue.
+    Q = [p]
+    # Maps visited nodes.
+    V = {}
+    # Keep track of parents.
+    Pa = {}
+    while len(Q) != 0:
+      # Get first element from queue.
+      n = Q.pop(0)
+      if n == q:
+        # Backtrack.
+        P = [q]
+        while P[-1] != p:
+          P.append(Pa[P[-1]])
+        for i, u in enumerate(P):
+          P[i] = (np.array(u)+0.5)*self._r
+        return P
+      for c in self._L[n]:
+        if c not in V:
+          V[c] = True
+          Pa[c] = n
+          Q.append(c)
+    # Could not find a path between the two vertices: graph is disconnected.
+    return None
+
   # A-star
   def path(self, p, q):
-    if p not in self._L or q not in self._L:
+    if self.invalid_tile(p, q):
       print("Can't get there! Source or target are not drivable.")
       return None
     # We're assuming the graph is connected.

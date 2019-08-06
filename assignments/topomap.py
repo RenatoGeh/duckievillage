@@ -11,6 +11,9 @@
 #
 # Task:
 #  - Implement navigation by calling the A-star path finding algorithm on the topological map.
+#  - Implement navigation by calling the BFS path finding algorithm on the topological map.
+#  - Compare and interpret the difference between paths using the two different traversal
+#    algorithms.
 #
 # Don't forget that you can (and should!) read the Duckievillage code in search of anything that
 # can be useful for your work.
@@ -74,7 +77,11 @@ def on_mouse_press(x, y, button, mods):
     px, py = env.convert_coords(x, y)
     # The function below calls A-star from the bot's current position to your mouse's position,
     # returning a list of positions to go to.
-    print(env.topo_graph.path(env.current_tile(), env.get_grid_coords((px, 0, py))))
+    P = env.topo_graph.path(env.current_tile(), env.get_grid_coords((px, 0, py)))
+    print(P, len(P))
+    # Below we call a BFS traversal algorithm instead. Notice how paths may differ!
+    Q = env.topo_graph.bfs(env.current_tile(), env.get_grid_coords((px, 0, py)))
+    print(Q, len(Q))
 
 key_handler = key.KeyStateHandler()
 env.unwrapped.window.push_handlers(key_handler)
