@@ -31,8 +31,8 @@
 #  1. Make sure everything is running fine and there are no errors during startup. If the code does
 #     not even start the environment, you will receive a zero.
 #  2. Test your code and make sure it's doing what it's supposed to do.
-#  3. Copy this file to ../solutions/
-#  4. Push changes to your fork. You will be evaluated from what's in your repository!
+#  3. Append your NUSP to this file name.
+#  4. Submit your work to PACA.
 
 import sys
 import pyglet
