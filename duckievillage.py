@@ -500,44 +500,6 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     self.objects.append(d)
     return d
 
-  # This function checks whether we've reached a waypoint (up to some error).
-  def arrived(self, x, y = None):
-    from numpy.linalg import norm
-    v = np.array([x, y]) if y is not None else x
-    return norm(v-self.get_position()) < 0.1
-
-  # Returns the angle relative to the Duckiebot's position and a target position.
-  def angle_target(self, t):
-    # This is the Duckiebot's pose.
-    s = np.delete(self.get_dir_vec(), 1)
-    # Get the vector representing the "distance" between Duckie and its target.
-    t -= self.get_position()
-    from numpy.linalg import norm
-    # Normalize vectors to unit size.
-    u, v = s/norm(s), t/norm(t)
-    # Do some basic trig and clip to [-1, 1] range.
-    return np.arccos(np.clip(np.dot(u, v), -1, 1))
-
-  # Returns the sine between the Duckiebot's vector direction + position and the target's position.
-  # This effectively gives a finer measure on "how good" is our heading towards the target. The
-  # sibling function angle_target returns the angle extracted from the cosine of two vectors.
-  # Because the cosine is zero from both limits (x -> 0^+ and x -> 0^-), we end up unable to
-  # differenciate between coming from "below" or "above". This function takes care of this by
-  # returning the sine (which is "zero-sensitive", i.e. limits on zero are not equal) instead of
-  # the arccosine.
-  def sine_target(self, p, pos = True):
-    s = np.delete(self.get_dir_vec(), 1)
-    if pos:
-      t = p - self.get_position()
-    else:
-      t = p
-    from numpy.linalg import norm
-    u, v = s/norm(s), t/norm(t)
-    return np.cross(u, v)/(norm(u, ord=1)*norm(v, ord=1))
-
-  def sine_vec(self, v):
-    return self.sine_target(v, pos = False)
-
 def _get_obj_props(kind, x, y, static = True):
   mesh = gym_duckietown.objmesh.ObjMesh.get(kind)
   return {
