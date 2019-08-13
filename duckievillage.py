@@ -102,28 +102,68 @@ class Waypoints:
 def _manhattan_dist(p, q):
   return abs(p[0]-q[0] + p[1]-q[1])
 
+# Euclidean distance
+def _euclidean_dist(p, q):
+  return np.linalg.norm(np.array(q)-np.array(p))
+
 # A topological graph of a Duckietown map.
+# Nodes are road tiles, edges indicate whether a road tile should be connected to another.
 class TopoGraph:
   def __init__(self, r):
     self._L = {}
     self._r = r
 
+  # Returns nodes.
+  def nodes(self):
+    return list(self._L.keys())
+
+  # Returns whether there exists a directed edge p->q.
+  def edge(self, p, q):
+    if self.invalid_tile(p, q):
+      return False
+    return q in self._L[p]
+
+  # Adds a node to the graph. Node must be a tuple! Convert your numpy.ndarray to tuple first.
   def add_node(self, p):
     if p not in self._L:
       self._L[p] = {}
 
+  # Adds center position of tile to graph.
+  def add_node_center(self, p):
+    if p not in self._L:
+      self._L[self.center_pos(p)] = {}
+
+  # Adds an undirected edge (effectively p->q and q->p) to the graph connecting nodes p and q.
   def add_edge(self, p, q):
     self._L[p][q] = True
     self._L[q][p] = True
 
+  # Adds a directed edge p->q.
+  def add_dir_edge(self, p, q):
+    self._L[p][q] = True
+
+  # Returns whether p or q is not a road tile.
   def invalid_tile(self, p, q):
     return p not in self._L or q not in self._L
 
-  # Breadth-first search
+  # Returns the closest node to position p.
+  def closest_node(self, p):
+    m, mp = math.inf, None
+    for q in self._L:
+      d = _euclidean_dist(p, q)
+      if m > d:
+        m, mp = d, q
+    return mp
+
+  # Returns the center position of a tile (i.e. the center position of the road tile).
+  def center_pos(self, p):
+    return tuple((np.array(p)+0.5)*self._r)
+
+  # Breadth-first search.
   def bfs(self, p, q):
-    if self.invalid_tile(p, q):
-      print("Can't get there! Source or target are not drivable.")
-      return None
+    # Get closest nodes to positions.
+    p = self.closest_node(p)
+    q = self.closest_node(q)
     # BFS Queue.
     Q = [p]
     # Maps visited nodes.
@@ -139,7 +179,7 @@ class TopoGraph:
         while P[-1] != p:
           P.append(Pa[P[-1]])
         for i, u in enumerate(P):
-          P[i] = (np.array(u)+0.5)*self._r
+          P[i] = u
         return P
       for c in self._L[n]:
         if c not in V:
@@ -149,11 +189,11 @@ class TopoGraph:
     # Could not find a path between the two vertices: graph is disconnected.
     return None
 
-  # A-star
+  # A-star path finding.
   def path(self, p, q):
-    if self.invalid_tile(p, q):
-      print("Can't get there! Source or target are not drivable.")
-      return None
+    # Get closest nodes to positions.
+    p = self.closest_node(p)
+    q = self.closest_node(q)
     # We're assuming the graph is connected.
     import heapq
     # Priority queue.
@@ -173,7 +213,7 @@ class TopoGraph:
       f, n = heapq.heappop(P)
       if n == q:
         # Backtrack.
-        R = [(np.array(q)+0.5)*self._r]
+        R = [q]
         m, mv, = None, math.inf
         u = q
         l = None
@@ -190,7 +230,7 @@ class TopoGraph:
                 m, mv = c, mv
           l = u
           u = m
-          R.append((np.array(u)+0.5)*self._r)
+          R.append(u)
         # Returns a stack with the coordinates in reverse order.
         return R
       for c in self._L[n]:
@@ -211,7 +251,7 @@ def _create_topo_graph(w: int, h: int, tiles: dict, r: float) -> TopoGraph:
   for t in tiles:
     i, j = t['coords']
     M[i][j] = t
-    G.add_node(t['coords'])
+    G.add_node_center(t['coords'])
   # We're assuming adjacent drivable tiles are always connected. That's not true for the general
   # case, but let's not worry about this for now.
   for t in tiles:
@@ -219,19 +259,19 @@ def _create_topo_graph(w: int, h: int, tiles: dict, r: float) -> TopoGraph:
     if i-1 >= 0:
       u = M[i-1][j]
       if u is not None:
-        G.add_edge(t['coords'], u['coords'])
+        G.add_edge(G.center_pos(t['coords']), G.center_pos(u['coords']))
     if j-1 >= 0:
       u = M[i][j-1]
       if u is not None:
-        G.add_edge(t['coords'], u['coords'])
+        G.add_edge(G.center_pos(t['coords']), G.center_pos(u['coords']))
     if i+1 < w:
       u = M[i+1][j]
       if u is not None:
-        G.add_edge(t['coords'], u['coords'])
+        G.add_edge(G.center_pos(t['coords']), G.center_pos(u['coords']))
     if j+1 < h:
       u = M[i][j+1]
       if u is not None:
-        G.add_edge(t['coords'], u['coords'])
+        G.add_edge(G.center_pos(t['coords']), G.center_pos(u['coords']))
   return G
 
 # Map of object polygons.

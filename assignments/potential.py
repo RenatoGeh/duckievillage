@@ -25,7 +25,7 @@
 #     not even start the environment, you will receive a zero.
 #  2. Test your code and make sure it's doing what it's supposed to do.
 #  3. Append your NUSP to this file name.
-#  4. Submit your work to PACA.import sys
+#  4. Submit your work to PACA.
 
 import math
 import pyglet

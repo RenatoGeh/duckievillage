@@ -10,10 +10,15 @@
 # Failure to follow instructions may result in a zero!
 #
 # Task:
-#  - Implement navigation by calling the A-star path finding algorithm on the topological map.
-#  - Implement navigation by calling the BFS path finding algorithm on the topological map.
-#  - Compare and interpret the difference between paths using the two different traversal
-#    algorithms.
+#  - By making use of your last assignment (navigation by waypoints), implement shortest-path
+#    navigation by calling the BFS path finding algorithm on the topological map.
+#  - Adapt your navigation plan to the usual traffic rules, creating a directed graph G such that
+#    nodes are lanes, and an edge e=(p, q) exists only if the agent is able to go from p to q without
+#    breaking any of the following rules:
+#    1. No U-turns allowed.
+#    2. Right lane only.
+#    3. Always go forward, never backwards.
+#    Run BFS to test your digraph.
 #
 # Don't forget that you can (and should!) read the Duckievillage code in search of anything that
 # can be useful for your work.
@@ -34,7 +39,7 @@
 #     not even start the environment, you will receive a zero.
 #  2. Test your code and make sure it's doing what it's supposed to do.
 #  3. Append your NUSP to this file name.
-#  4. Submit your work to PACA.import sys
+#  4. Submit your work to PACA.
 
 import sys
 import pyglet
@@ -60,6 +65,9 @@ env = DuckievillageEnv(
 env.reset()
 env.render()
 
+# Use G to create the directed graph mentioned in the assignment task list.
+G = duckievillage.TopoGraph()
+
 @env.unwrapped.window.event
 def on_key_press(symbol, modifiers):
   if symbol == key.ESCAPE:
@@ -75,13 +83,13 @@ def on_mouse_press(x, y, button, mods):
       return
     # Convert coordinates from window position to Duckietown coordinates.
     px, py = env.convert_coords(x, y)
-    # The function below calls A-star from the bot's current position to your mouse's position,
+    # The function below calls BFS from the bot's current position to your mouse's position,
     # returning a list of positions to go to.
-    P = env.topo_graph.path(env.current_tile(), env.get_grid_coords((px, 0, py)))
-    print(P, len(P))
-    # Below we call a BFS traversal algorithm instead. Notice how paths may differ!
-    Q = env.topo_graph.bfs(env.current_tile(), env.get_grid_coords((px, 0, py)))
+    Q = env.topo_graph.bfs(env.get_position(), (px, py))
     print(Q, len(Q))
+
+    # Once you implement your new digraph, you should be able to call BFS in the following way:
+    # Q = G.bfs(env.get_position(), (px, py))
 
 key_handler = key.KeyStateHandler()
 env.unwrapped.window.push_handlers(key_handler)
