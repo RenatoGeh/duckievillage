@@ -51,23 +51,25 @@ import gym_duckietown
 import duckievillage
 from duckievillage import DuckievillageEnv
 
+TRACKS = (('./maps/dense.yaml', 5), ('./maps/large.yaml', 15))
+which = 0
 
 env = DuckievillageEnv(
   seed = 101,
-  map_name = './maps/large.yaml',
+  map_name = TRACKS[which][0],
   draw_curve = False,
   draw_bbox = False,
   domain_rand = False,
   distortion = False,
   top_down = False,
-  cam_height = 15
+  cam_height = TRACKS[which][1]
 )
 
 env.reset()
 env.render()
 
 # Use G to create the directed graph mentioned in the assignment task list.
-G = duckievillage.TopoGraph()
+G = duckievillage.TopoGraph(env.road_tile_size)
 
 @env.unwrapped.window.event
 def on_key_press(symbol, modifiers):
