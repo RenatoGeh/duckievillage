@@ -54,12 +54,13 @@ from duckievillage import DuckievillageEnv
 
 env = DuckievillageEnv(
   seed = 101,
-  map_name = './maps/dense.yaml',
+  map_name = './maps/large.yaml',
   draw_curve = False,
   draw_bbox = False,
   domain_rand = False,
   distortion = False,
-  top_down = False
+  top_down = False,
+  cam_height = 15
 )
 
 env.reset()
