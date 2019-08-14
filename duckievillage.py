@@ -752,18 +752,22 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   # We have to convert from window positions to actual Duckietown coordinates.
   def convert_coords(self, x: int, y: int) -> (float, float):
     # Maps are up to grid_width tiles high. Assuming square tiles and invariant tile dimensions:
-    h = self.grid_width * self.road_tile_size
-    r =  h / WINDOW_HEIGHT
+    hx = self.grid_width * self.road_tile_size
+    hy = self.grid_height * self.road_tile_size
+    rx =  hx / WINDOW_WIDTH
+    ry =  hy / WINDOW_HEIGHT
     # Do some mathemagics.
-    return x*r - 2*self.road_tile_size/3, h - y*r
+    return x*rx, hy - y*ry
 
   # The inverse transformation of the above.
   def unconvert_coords(self, x: float, y: float = None) -> (int, int):
     if y is None:
       x, y = x[0], x[1]
-    h = self.grid_width * self.road_tile_size
-    r = WINDOW_HEIGHT / h
-    return round((x+2*self.road_tile_size/3)*r), round(WINDOW_HEIGHT - y*r)
+    hx = self.grid_width * self.road_tile_size
+    hy = self.grid_height * self.road_tile_size
+    rx = WINDOW_WIDTH / hx
+    ry = WINDOW_HEIGHT / hy
+    return round(x*rx), round(WINDOW_HEIGHT - y*ry)
 
   def add_duckie(self, x, y = None, static = True):
     if y is None:
