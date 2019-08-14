@@ -1,0 +1,31 @@
+tiles:
+- [grass,         grass,         grass,         grass,         curve_right/N, straight/W,    curve_left/N,  grass,         curve_right/N, straight/W,    3way_right/E,  straight/W,    curve_left/N,  asphalt,       asphalt,       curve_right/N, straight/W,    3way_right/E,  straight/W,    curve_left/N]
+- [grass,         grass,         grass,         grass,         straight/N,    asphalt,       straight/N,    grass,         straight/N,    asphalt,       straight/N,    asphalt,       curve_right/W, curve_left/N,  asphalt,       straight/N,    asphalt,       straight/N,    asphalt,       straight/N]
+- [grass,         curve_right/N, straight/W,    straight/W,    4way,          straight/W,    4way,          straight/W,    4way,          straight/W,    curve_left/E,  asphalt,       asphalt,       curve_right/W, straight/W,    3way_right/W,  straight/W,    4way,          straight/W,    curve_left/E]
+- [curve_right/N, curve_left/E,  asphalt,       asphalt,       straight/N,    grass,         straight/N,    asphalt,       straight/N,    grass,         grass,         asphalt,       asphalt,       asphalt,       asphalt,       asphalt,       asphalt,       straight/N,    grass,         grass]
+- [straight/N,    asphalt,       curve_right/N, straight/W,    3way_right/W,  straight/W,    curve_left/E,  asphalt,       curve_right/W, curve_left/N,  grass,         asphalt,       asphalt,       asphalt,       asphalt,       asphalt,       curve_right/N, curve_left/E,  grass,         grass]
+- [curve_right/W, straight/W,    curve_left/E,  grass,         grass,         grass,         grass,         asphalt,       asphalt,       curve_right/W, curve_left/N,  asphalt,       asphalt,       curve_right/N, straight/W,    straight/W,    curve_left/E,  grass,         grass,         grass]
+- [grass,         grass,         grass,         grass,         grass,         grass,         grass,         asphalt,       asphalt,       asphalt,       straight/N,    asphalt,       asphalt,       straight/N,    asphalt,       asphalt,       asphalt,       grass,         grass,         grass]
+- [grass,         grass,         grass,         grass,         curve_right/N, straight/W,    curve_left/N,  asphalt,       asphalt,       asphalt,       3way_right/N,  straight/W,    straight/W,    4way,          straight/W,    straight/W,    straight/W,    straight/W,    curve_left/N,  grass]
+- [grass,         grass,         grass,         curve_right/N, curve_left/E,  grass,         curve_right/W, straight/W,    curve_left/N,  asphalt,       straight/N,    asphalt,       asphalt,       straight/N,    asphalt,       asphalt,       asphalt,       asphalt,       curve_right/W, curve_left/N]
+- [curve_right/N, straight/W,    straight/W,    curve_left/E,  grass,         grass,         grass,         grass,         curve_right/W, straight/W,    3way_right/W,  straight/W,    straight/W,    4way,          straight/W,    curve_left/N,  asphalt,       asphalt,       asphalt,       straight/N]
+- [straight/N,    asphalt,       asphalt,       asphalt,       grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         straight/N,    grass,         curve_right/W, straight/W,    straight/W,    straight/W,    curve_left/E]
+- [straight/N,    asphalt,       asphalt,       asphalt,       grass,         grass,         grass,         curve_right/N, straight/W,    3way_right/E,  straight/W,    curve_left/N,  grass,         straight/N,    grass,         grass,         grass,         grass,         grass,         grass]
+- [straight/N,    asphalt,       asphalt,       asphalt,       grass,         grass,         grass,         straight/N,    asphalt,       straight/N,    grass,         straight/N,    grass,         3way_right/N,  straight/W,    straight/W,    straight/W,    straight/W,    straight/W,    curve_left/N]
+- [curve_right/W, curve_left/N,  asphalt,       asphalt,       grass,         grass,         grass,         3way_right/N,  straight/W,    4way,          straight/W,    3way_left/N,   grass,         straight/N,    asphalt,       asphalt,       asphalt,       asphalt,       asphalt,       straight/N]
+- [grass,         curve_right/W, straight/W,    curve_left/N,  grass,         grass,         grass,         straight/N,    asphalt,       straight/N,    asphalt,       straight/N,    grass,         straight/N,    asphalt,       asphalt,       asphalt,       asphalt,       asphalt,       straight/N]
+- [grass,         grass,         grass,         straight/N,    grass,         curve_right/N, straight/W,    4way,          straight/W,    3way_right/W,  straight/W,    4way,          straight/W,    3way_left/N,   asphalt,       asphalt,       asphalt,       asphalt,       curve_right/N, curve_left/E]
+- [curve_right/N, straight/W,    straight/W,    curve_left/E,  grass,         straight/N,    asphalt,       straight/N,    grass,         grass,         grass,         straight/N,    grass,         straight/N,    asphalt,       asphalt,       asphalt,       asphalt,       straight/N,    asphalt]
+- [straight/N,    grass,         grass,         grass,         grass,         straight/N,    asphalt,       curve_right/W, curve_left/N,  grass,         grass,         straight/N,    grass,         curve_right/W, curve_left/N,  asphalt,       curve_right/N, straight/W,    curve_left/E,  asphalt]
+- [curve_right/W, straight/W,    straight/W,    curve_left/N,  grass,         straight/N,    asphalt,       asphalt,       straight/N,    grass,         grass,         straight/N,    grass,         grass,         curve_right/W, straight/W,    curve_left/E,  asphalt,       asphalt,       asphalt]
+- [grass,         grass,         grass,         curve_right/W, straight/W,    3way_right/W,  straight/W,    straight/W,    3way_right/W,  straight/W,    straight/W,    curve_left/E,  grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass]
+
+
+objects:
+
+- kind: sign_right_T_intersect
+  pos: [11.05, 1.05]
+  rotate: 180
+  height: 0.18
+
+tile_size: 0.585
