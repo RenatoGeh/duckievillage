@@ -285,7 +285,7 @@ class PolygonMap:
 
   def add(self, obj):
     # Transform coordinates back to Duckietown.
-    p = (obj.obj_corners - ((2*self._env.road_tile_size/3), 0))/(2,1)
+    p = obj.obj_corners/(2,1)
     # Append Duckietown coordinates.
     self._polys = np.append(self._polys, [obj.obj_corners], axis=0)
     # Convert to window coordinates.

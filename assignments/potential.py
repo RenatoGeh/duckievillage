@@ -105,6 +105,10 @@ def F_att(p, g):
 def F_rep(p, o):
   raise NotImplemented
 
+# Returns the sine between two vectors p and q.
+def sine_vec(p, q):
+  raise NotImplemented
+
 # Returns an action corresponding to the power given to the engines and steering angle.
 def force():
   from numpy.linalg import norm
@@ -123,7 +127,7 @@ def force():
   f = f_att + f_rep
   # Clips the norm-1 of f between -0.2 and 0.2. The steering angle is given by the opposite
   # direction of the sine of the angle between f and the current direction of the bot.
-  return (np.clip(norm(f, ord=1), -0.2, 0.2), -env.sine_vec(f))
+  return (np.clip(norm(f, ord=1), -0.2, 0.2), -sine_vec(np.delete(env.get_dir_vec(), 1), f))
 
 def update(dt):
   action = np.array([0.0, 0.0])
