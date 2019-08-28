@@ -355,7 +355,12 @@ class Odometer:
     self._dist += ((wl + wr)*r)/2 + np.random.normal(0, self._sigma_dist)
 
   def measure(self):
-    d, t = self._theta, self._dist
+    from math import fmod, pi
+    t, d = fmod(self._theta, 360), self._dist
+    if t < 0:
+      t += 360
+    if d < 0:
+      d = 0
     self.reset()
     return d, t
 
