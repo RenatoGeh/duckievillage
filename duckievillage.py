@@ -339,24 +339,30 @@ class PolygonMap:
 FULL_VIEW_MODE = 0
 TOP_DOWN_VIEW_MODE = 1
 FRONT_VIEW_MODE = 2
+N_VIEW_MODES = 3
 
 # A virtual odometer with a certain error rate.
 class Odometer:
   def __init__(self, sigma_theta = 0.1, sigma_dist = 0.01):
-    self.dist = 0
-    self.theta = 0
+    self._dist = 0
+    self._theta = 0
     self._sigma_theta = sigma_theta
     self._sigma_dist = sigma_dist
 
   # Update odometer and applies some gaussian error to values.
   def update(self, wl, wr, r):
-    self.theta += wl - wr + np.random.normal(0, self._sigma_theta)
-    self.dist += ((wl + wr)*r)/2 + np.random.normal(0, self._sigma_dist)
+    self._theta += wl - wr + np.random.normal(0, self._sigma_theta)
+    self._dist += ((wl + wr)*r)/2 + np.random.normal(0, self._sigma_dist)
+
+  def measure(self):
+    d, t = self._theta, self._dist
+    self.reset()
+    return d, t
 
   # Resets the odometer.
   def reset(self):
-    self.theta = 0
-    self.dist = 0
+    self._theta = 0
+    self._dist = 0
 
 # This is a mock-up of a road tile sensor. It detects the road type of the current tile (straight,
 # curve or intersection) and applies some error to make it more realistic.
@@ -369,24 +375,20 @@ class RoadSensor:
     self._error_mu = error_mu
     self._error_sigma = error_sigma
 
-  # Predicts the current tile and applies a gaussian error to it. Returns None if could not
-  # recognize terrain (i.e. agent is not standing on a road tile).
+    self._cm = ((0.7, 0.1, 0.2),
+                (0.1, 0.8, 0.1),
+                (0.2, 0.1, 0.7))
+
+  # Predicts the current tile and applies an error to it. Returns None if could not
+  # recognize terrain (i.e. agent is not standing on a road tile). Returns 0 if straight, 1 if
+  # curve and 2 if intersection.
   def predict(self):
     for t in self._env.drivable_tiles:
       if t['coords'] == self._env.current_tile():
-        from random import uniform, shuffle
-        p = np.clip(np.random.normal(self._error_mu, self._error_sigma), 0.4, 0.9)
-        q1 = uniform(0, 1.0-p)
-        q2 = 1.0-p-q1
-        P = [q1, q1, q1]
-        C = [0, 1, 2]
-        k = RoadSensor.KINDS[t['kind']]
-        C.pop(k)
-        shuffle(C)
-        P[k] = p
-        P[C[0]] = q1
-        P[C[1]] = q2
-        return P
+        from numpy.random import choice
+        c = choice(3, p=self._cm[RoadSensor.KINDS[t['kind']]])
+        # Returns
+        return c
     return None
 
 class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
@@ -413,13 +415,21 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     self._roads = []
     for t in self.drivable_tiles:
       k = t['kind'].split('_', 1)[0]
+      if k == '3way' or k == '4way':
+        k = 'inter'
       self._roads.append((t['coords'], k))
 
   def next_view(self):
-    self._view_mode = (self._view_mode + 1) % 3
+    self._view_mode = (self._view_mode + 1) % N_VIEW_MODES
 
   def set_view(self, view):
-    self._view_mode = view % 3
+    self._view_mode = view % N_VIEW_MODES
+
+  def toggle_single_view(self):
+    if self._view_mode == TOP_DOWN_VIEW_MODE:
+      self._view_mode = FRONT_VIEW_MODE
+    else:
+      self._view_mode = TOP_DOWN_VIEW_MODE
 
   # Returns a list with all road tiles in the current map. Each item of the list contains the
   # tile indices (not positional coordinates), and the tile type (curve, straight, intersection).
@@ -731,7 +741,7 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     if self._view_mode == FULL_VIEW_MODE:
       img = np.concatenate((top, bot), axis=1)
       win_width = 2*WINDOW_WIDTH
-    elif self._view_mode == FRONT_VIEW_MODE:
+    elif self._view_mode == TOP_DOWN_VIEW_MODE:
       img = top
     else:
       img = bot

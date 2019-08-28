@@ -28,7 +28,7 @@ import numpy as np
 from pyglet.window import key
 import gym
 import gym_duckietown
-from duckievillage import DuckievillageEnv
+from duckievillage import DuckievillageEnv, FRONT_VIEW_MODE
 
 env = DuckievillageEnv(
   seed = 101,
@@ -39,6 +39,8 @@ env = DuckievillageEnv(
   distortion = False,
   top_down = False,
 )
+
+env.set_view(FRONT_VIEW_MODE)
 
 env.reset()
 env.render()
@@ -51,6 +53,10 @@ def on_key_press(symbol, modifiers):
   elif symbol == key.SPACE:
     print(env.road_sensor.predict())
     print(env.roads())
+  elif symbol == key.BACKSPACE:
+    print(env.odometer.measure())
+  elif symbol == key.V:
+    env.toggle_single_view()
   env.render()
 
 key_handler = key.KeyStateHandler()
@@ -59,14 +65,14 @@ env.unwrapped.window.push_handlers(key_handler)
 def update(dt):
   action = np.array([0.0, 0.0])
 
-  if key_handler[key.W]:
-    action += np.array([0.5, 0.0])
-  if key_handler[key.A]:
-    action += np.array([0.0, 1.0])
-  if key_handler[key.S]:
-    action += np.array([-0.5, 0.0])
-  if key_handler[key.D]:
-    action += np.array([0.0, -1.0])
+  if key_handler[key.UP]:
+    action += (0.5, 0.0)
+  if key_handler[key.LEFT]:
+    action += (0.0, 1.0)
+  if key_handler[key.DOWN]:
+    action += (-0.5, 0.0)
+  if key_handler[key.RIGHT]:
+    action += (0.0, -1.0)
 
   obs, reward, done, info = env.step(action)
 
