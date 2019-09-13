@@ -5,13 +5,13 @@
 #
 # ---
 #
-# Assignment 5 - Lane following as a regression task
+# Assignment 8 - Lane following as a regression task
 # Carefully read this header and follow submission instructions!
 # Failure to follow instructions may result in a zero!
 #
 # Don't forget to run this from the Duckievillage root directory!
 # From within the root directory, run python with the -m flag.
-#   python3 -m assignments.localization
+#   python3 -m assignments.regression
 #
 # Submission instructions:
 #  0. Add your name and USP number to the header's header.
