@@ -465,13 +465,13 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   def get_position(self):
     return np.delete(self.cur_pos, 1)
 
-  def top_down(self):
+  def top_down_obs(self):
     return self._render_img(
       WINDOW_WIDTH,
       WINDOW_HEIGHT,
-      self.multi_fbo,
-      self.final_fbo,
-      self.img_array,
+      self.multi_fbo_human,
+      self.final_fbo_human,
+      self.img_array_human,
       top_down = True
     )
 
@@ -479,10 +479,10 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     return self._render_img(
       WINDOW_WIDTH,
       WINDOW_HEIGHT,
-      self.multi_fbo,
-      self.final_fbo,
-      self.img_array,
-      top_down = True
+      self.multi_fbo_human,
+      self.final_fbo_human,
+      self.img_array_human,
+      top_down = False
     )
 
   def _render_img(self, width, height, multi_fbo, final_fbo, img_array, top_down=True):
