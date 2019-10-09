@@ -13,7 +13,7 @@ public class RemoteCar {
         connect();
         while(true){
             if (dataIn.available() > 0){
-                int x = dataIn.readInt();
+                int x = dataIn.readByte();
                 if(checkCommand(x)) {
                     disconnect();
                     break;
@@ -25,15 +25,15 @@ public class RemoteCar {
     public static boolean checkCommand(int data) throws Exception {
         System.out.println(data);
         switch (data) {
-            case 99:
+            case 0x64:
                 return true;
-            case 0: // forward
+            case 0x01: // forward
                 Motor.A.setSpeed(speed);
                 Motor.C.setSpeed(speed);
                 Motor.A.forward();
                 Motor.C.forward();
                 break;
-            case 3: // backward
+            case 0x02: // backward
                 Motor.A.setSpeed(speed);
                 Motor.C.setSpeed(speed);
                 Motor.A.backward();

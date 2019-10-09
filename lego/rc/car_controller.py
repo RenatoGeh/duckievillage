@@ -19,19 +19,19 @@ while True:
     time.sleep(0.05)
     try:
         if key.is_pressed('q'):
-            brick.send(99)
+            brick.send('\x64')
             print('Exiting...')
             break
         elif key.is_pressed('up'):
-            brick.send(0)
+            brick.send('\x01')
         elif key.is_pressed('right'):
-            brick.send(1)
+            brick.send('\x02')
         elif key.is_pressed('left'):
-            brick.send(2)
+            brick.send('\x03')
         elif key.is_pressed('down'):
-            brick.send(3)
+            brick.send('\x04')
         else:
-            brick.send(5)
+            brick.send('\x05')
 
     except Exception as inst:
         print(inst)
