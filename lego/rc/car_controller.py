@@ -4,6 +4,7 @@ Must be executed as root
 '''
 import time
 import keyboard as key
+import usb
 import USBInterface
 
 raise_exception = False
