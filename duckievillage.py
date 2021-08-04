@@ -16,6 +16,7 @@ import gym_duckietown.objects
 import gym_duckietown.simulator
 import gym_duckietown.envs
 import gym_duckietown.wrappers
+from pyglet import gl, window, image
 
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
@@ -400,11 +401,12 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   top_down = False
 
   def __init__(self, top_down = False, cam_height = 5, **kwargs):
+    print("     Initializing parent")
     gym_duckietown.envs.DuckietownEnv.__init__(self, **kwargs)
+    print("     Done initializing parent")
+    self.horizon_color = self._perturb(self.color_sky)
+    self.cam_fov_y = gym_duckietown.simulator.CAMERA_FOV_Y
     self.top_down = top_down
-    logger = logging.getLogger('gym-duckietown')
-    logger.propagate = False
-    self.force_reset()
     self.topo_graph = _create_topo_graph(self.grid_width, self.grid_height, self.drivable_tiles,
                                          self.road_tile_size)
     self.poly_map = PolygonMap(self)
@@ -441,19 +443,6 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   def roads(self):
     return self._roads
 
-  def render_obs(self):
-    obs = self._render_img(
-      self.camera_width,
-      self.camera_height,
-      self.multi_fbo,
-      self.final_fbo,
-      self.img_array,
-      top_down = self.top_down
-    )
-    if self.distortion and not self.undistort:
-      obs = self.camera_model.distort(obs)
-    return obs
-
   def current_tile(self):
     return self.get_grid_coords(self.cur_pos)
 
@@ -465,258 +454,36 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   def get_position(self):
     return np.delete(self.cur_pos, 1)
 
-  def top_down_obs(self):
+  def top_down_obs(self, segment = False):
     return self._render_img(
       WINDOW_WIDTH,
       WINDOW_HEIGHT,
       self.multi_fbo_human,
       self.final_fbo_human,
       self.img_array_human,
-      top_down = True
+      top_down = True,
+      segment=segment,
     )
 
-  def front(self):
+  def front(self, segment = False):
     return self._render_img(
       WINDOW_WIDTH,
       WINDOW_HEIGHT,
       self.multi_fbo_human,
       self.final_fbo_human,
       self.img_array_human,
-      top_down = False
+      top_down = False,
+      segment=segment,
     )
 
-  def _render_img(self, width, height, multi_fbo, final_fbo, img_array, top_down=True):
-    """
-    Render an image of the environment into a frame buffer
-    Produce a numpy RGB array image as output
-    """
-
-    if not self.graphics:
-      return
-
-    # Switch to the default context
-    # This is necessary on Linux nvidia drivers
-    # pyglet.gl._shadow_window.switch_to()
-    self.shadow_window.switch_to()
-
-    from pyglet import gl
-    # Bind the multisampled frame buffer
-    gl.glEnable(gl.GL_MULTISAMPLE)
-    gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, multi_fbo)
-    gl.glViewport(0, 0, width, height)
-
-    # Clear the color and depth buffers
-
-    c0, c1, c2 = self.horizon_color
-    gl.glClearColor(c0, c1, c2, 1.0)
-    gl.glClearDepth(1.0)
-    gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-
-    # Set the projection matrix
-    gl.glMatrixMode(gl.GL_PROJECTION)
-    gl.glLoadIdentity()
-    gl.gluPerspective(
-      self.cam_fov_y,
-      width / float(height),
-      0.04,
-      100.0
-    )
-
-    # Set modelview matrix
-    # Note: we add a bit of noise to the camera position for data augmentation
-    pos = self.cur_pos
-    angle = self.cur_angle
-    if self.domain_rand:
-      pos = pos + self.randomization_settings['camera_noise']
-
-    x, y, z = pos + self.cam_offset
-    dx, dy, dz = self.get_dir_vec(angle)
-    gl.glMatrixMode(gl.GL_MODELVIEW)
-    gl.glLoadIdentity()
-
-    if self.draw_bbox:
-      y += 0.8
-      gl.glRotatef(90, 1, 0, 0)
-    elif not top_down:
-      y += self.cam_height
-      gl.glRotatef(self.cam_angle[0], 1, 0, 0)
-      gl.glRotatef(self.cam_angle[1], 0, 1, 0)
-      gl.glRotatef(self.cam_angle[2], 0, 0, 1)
-      gl.glTranslatef(0, 0, self._perturb(gym_duckietown.simulator.CAMERA_FORWARD_DIST))
-
-    if top_down:
-      gl.gluLookAt(
-        # Eye position
-        (self.grid_width * self.road_tile_size) / 2,
-        self.top_cam_height,
-        (self.grid_height * self.road_tile_size) / 2,
-        # Target
-        (self.grid_width * self.road_tile_size) / 2,
-        0,
-        (self.grid_height * self.road_tile_size) / 2,
-        # Up vector
-        0, 0, -1.0
-      )
-    else:
-      gl.gluLookAt(
-        # Eye position
-        x,
-        y,
-        z,
-        # Target
-        x + dx,
-        y + dy,
-        z + dz,
-        # Up vector
-        0, 1.0, 0.0
-      )
-
-    # Draw the ground quad
-    gl.glDisable(gl.GL_TEXTURE_2D)
-    gl.glColor3f(*self.ground_color)
-    gl.glPushMatrix()
-    gl.glScalef(50, 1, 50)
-    self.ground_vlist.draw(gl.GL_QUADS)
-    gl.glPopMatrix()
-
-    # Draw the ground/noise triangles
-    self.tri_vlist.draw(gl.GL_TRIANGLES)
-
-    # Draw the road quads
-    gl.glEnable(gl.GL_TEXTURE_2D)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
-
-    # For each grid tile
-    for j in range(self.grid_height):
-      for i in range(self.grid_width):
-        # Get the tile type and angle
-        tile = self._get_tile(i, j)
-
-        if tile is None:
-          continue
-
-        # kind = tile['kind']
-        angle = tile['angle']
-        color = tile['color']
-        texture = tile['texture']
-
-        gl.glColor3f(*color)
-
-        gl.glPushMatrix()
-        gl.glTranslatef((i + 0.5) * self.road_tile_size, 0, (j + 0.5) * self.road_tile_size)
-        gl.glRotatef(angle * 90, 0, 1, 0)
-
-        # Bind the appropriate texture
-        texture.bind()
-
-        self.road_vlist.draw(gl.GL_QUADS)
-        gl.glPopMatrix()
-
-        if self.draw_curve and tile['drivable']:
-          # Find curve with largest dotproduct with heading
-          curves = self._get_tile(i, j)['curves']
-          curve_headings = curves[:, -1, :] - curves[:, 0, :]
-          curve_headings = curve_headings / np.linalg.norm(curve_headings).reshape(1, -1)
-          dirVec = get_dir_vec(angle)
-          dot_prods = np.dot(curve_headings, dirVec)
-
-          # Current ("closest") curve drawn in Red
-          pts = curves[np.argmax(dot_prods)]
-          bezier_draw(pts, n=20, red=True)
-
-          pts = self._get_curve(i, j)
-          for idx, pt in enumerate(pts):
-            # Don't draw current curve in blue
-            if idx == np.argmax(dot_prods):
-                continue
-            bezier_draw(pt, n=20)
-
-    # For each object
-    for idx, obj in enumerate(self.objects):
-      obj.render(self.draw_bbox)
-
-    # Draw the agent's own bounding box
-    if self.draw_bbox:
-      corners = get_agent_corners(pos, angle)
-      gl.glColor3f(1, 0, 0)
-      gl.glBegin(gl.GL_LINE_LOOP)
-      gl.glVertex3f(corners[0, 0], 0.01, corners[0, 1])
-      gl.glVertex3f(corners[1, 0], 0.01, corners[1, 1])
-      gl.glVertex3f(corners[2, 0], 0.01, corners[2, 1])
-      gl.glVertex3f(corners[3, 0], 0.01, corners[3, 1])
-      gl.glEnd()
-
-    if top_down:
-      gl.glPushMatrix()
-      gl.glTranslatef(*self.cur_pos)
-      gl.glScalef(1, 1, 1)
-      gl.glRotatef(self.cur_angle * 180 / np.pi, 0, 1, 0)
-      # glColor3f(*self.color)
-      self.mesh.render()
-      gl.glPopMatrix()
-
-    # Resolve the multisampled frame buffer into the final frame buffer
-    gl.glBindFramebuffer(gl.GL_READ_FRAMEBUFFER, multi_fbo)
-    gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, final_fbo)
-    gl.glBlitFramebuffer(
-      0, 0,
-      width, height,
-      0, 0,
-      width, height,
-      gl.GL_COLOR_BUFFER_BIT,
-      gl.GL_LINEAR
-    )
-
-    # Copy the frame buffer contents into a numpy array
-    # Note: glReadPixels reads starting from the lower left corner
-    gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, final_fbo)
-    gl.glReadPixels(
-      0,
-      0,
-      width,
-      height,
-      gl.GL_RGB,
-      gl.GL_UNSIGNED_BYTE,
-      img_array.ctypes.data_as(POINTER(gl.GLubyte))
-    )
-
-    # Unbind the frame buffer
-    gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
-
-    # Flip the image because OpenGL maps (0,0) to the lower-left corner
-    # Note: this is necessary for gym.wrappers.Monitor to record videos
-    # properly, otherwise they are vertically inverted.
-    img_array = np.ascontiguousarray(np.flip(img_array, axis=0))
-
-    return img_array
-
-    def render_obs(self):
-        """
-        Render an observation from the point of view of the agent
-        """
-
-        observation = self._render_img(
-                self.camera_width,
-                self.camera_height,
-                self.multi_fbo,
-                self.final_fbo,
-                self.img_array,
-                top_down=True
-        )
-
-        # self.undistort - for UndistortWrapper
-        if self.distortion and not self.undistort:
-            observation = self.camera_model.distort(observation)
-
-        return observation
-
-
-
-  def render(self, mode='human', close=False, text=False):
+  def render(self, mode: str = "human", close: bool = False, segment: bool = False):
     """
     Render the environment for human viewing
+
+    mode: "human", "top_down", "free_cam", "rgb_array"
+
     """
+    assert mode in ["human", "top_down", "free_cam", "rgb_array"]
 
     if close:
       if self.window:
@@ -725,22 +492,11 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
 
     top_down = mode == 'top_down'
     # Render the image
-    top = self._render_img(
-      WINDOW_WIDTH,
-      WINDOW_HEIGHT,
-      self.multi_fbo_human,
-      self.final_fbo_human,
-      self.img_array_human,
-      top_down = True
-    )
-    bot = self._render_img(
-      WINDOW_WIDTH,
-      WINDOW_HEIGHT,
-      self.multi_fbo_human,
-      self.final_fbo_human,
-      self.img_array_human,
-      top_down = False
-    )
+    top = self.top_down_obs(segment)
+    bot = self.front(segment)
+
+    if self.distortion and not self.undistort and mode != "free_cam":
+      bot = self.camera_model.distort(bot)
 
     win_width = WINDOW_WIDTH
     if self._view_mode == FULL_VIEW_MODE:
@@ -751,17 +507,12 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     else:
       img = bot
 
+
     if self.window is not None:
       self.window.set_size(win_width, WINDOW_HEIGHT)
 
-    # self.undistort - for UndistortWrapper
-    if self.distortion and not self.undistort and mode != "free_cam":
-      img = self.camera_model.distort(img)
-
     if mode == 'rgb_array':
       return img
-
-    from pyglet import gl, window, image
 
     if self.window is None:
       config = gl.Config(double_buffer=False)
@@ -806,22 +557,23 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     )
 
     # Display position/state information
-    if text and mode != "free_cam":
+    if mode != "free_cam":
       x, y, z = self.cur_pos
-      self.text_label.text = "pos: (%.2f, %.2f, %.2f), angle: %d, steps: %d, speed: %.2f m/s" % (
-        x, y, z,
-        int(self.cur_angle * 180 / math.pi),
-        self.step_count,
-        self.speed
+      self.text_label.text = (
+        f"pos: ({x:.2f}, {y:.2f}, {z:.2f}), angle: "
+        f"{np.rad2deg(self.cur_angle):.1f} deg, steps: {self.step_count}, "
+        f"speed: {self.speed:.2f} m/s"
       )
       self.text_label.draw()
 
     # Force execution of queued commands
     gl.glFlush()
 
-  def reset(self, force=False):
+    return img
+
+  def reset(self, segment: bool = False, force = True):
     if force:
-      self.force_reset()
+      self.force_reset(segment)
 
   def step(self, action):
     obs, reward, done, info = gym_duckietown.envs.DuckietownEnv.step(self, action)
@@ -829,8 +581,11 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     self.odometer.update(metrics['omega_l'], metrics['omega_r'], metrics['radius'])
     return obs, reward, done, info
 
-  def force_reset(self):
-    gym_duckietown.envs.DuckietownEnv.reset(self)
+  def get_dir_vec(self):
+    return gym_duckietown.simulator.get_dir_vec(self.cur_angle)
+
+  def force_reset(self, segment: bool = False):
+    gym_duckietown.envs.DuckietownEnv.reset(self, segment)
 
   # We have to convert from window positions to actual Duckietown coordinates.
   def convert_coords(self, x: int, y: int) -> (float, float):
