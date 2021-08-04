@@ -1,3 +1,7 @@
+# Ignore duckietown.
+duckietown/
+gym-duckietown/
+
 # Output files
 waypoints.txt
 
