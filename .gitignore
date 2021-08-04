@@ -1,6 +1,7 @@
 # Ignore duckietown.
 duckietown/
 gym-duckietown/
+solutions/
 
 # Output files
 waypoints.txt
