@@ -635,10 +635,11 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     return d
 
 def _get_obj_props(kind, x, y, static = True):
-  mesh = gym_duckietown.objmesh.ObjMesh.get(kind)
+  mesh = gym_duckietown.objmesh.get_mesh(kind)
   return {
     'kind': kind,
     'mesh': mesh,
+    'angle': 0,
     'pos': np.array([x, 0, y]),
     'scale': 0.06 / mesh.max_coords[1],
     'y_rot': 0,
