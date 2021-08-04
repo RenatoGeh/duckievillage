@@ -57,7 +57,7 @@ echo "Creating environment..."
 conda env create -f duckietown/environment.yaml --name duckietown || exit_with_error
 # Add Duckietown to PYTHONPATH.
 echo "Adding path to ${_shell}..."
-echo "export PYTHONPATH=\"\${PYTHONPATH}:$(pwd)/duckietown\"" >> ${_shell}
+echo "export PYTHONPATH=\"\${PYTHONPATH}:$(pwd)/duckietown/src\"" >> ${_shell}
 echo "Activating environment..."
 conda activate duckietown || exit_with_error
 # Manually add dependencies which are not in the Anaconda repositories.
@@ -74,8 +74,8 @@ echo "---"
 echo "Do you want to run a test to see if everything is working?"
 select opt in "Yes" "No"; do
   case $opt in
-    Yes ) python3 -m assignments.manual; break;;
-    No ) exit;;
+    Yes ) source ${_shell} && python3 -m assignments.manual; break;;
+    No ) break;;
   esac
 done
 

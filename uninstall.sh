@@ -33,7 +33,7 @@ if [ -d "duckietown" ]; then
   select opt in "Yes" "No"; do
     case $opt in
       Yes ) rm -rf ./duckietown; break;;
-      No ) exit;;
+      No ) break;;
     esac
   done
 fi
@@ -42,7 +42,7 @@ echo "Delete the Anaconda Duckietown environment?"
 select opt in "Yes" "No"; do
   case $opt in
     Yes ) conda remove --name duckietown --all; break;;
-    No ) exit;;
+    No ) break;;
   esac
 done
 
@@ -50,7 +50,7 @@ echo "Clean up unused Anaconda packages?"
 select opt in "Yes" "No"; do
   case $opt in
     Yes ) conda clean -a -t -p; break;;
-    No ) exit;;
+    No ) break;;
   esac
 done
 
