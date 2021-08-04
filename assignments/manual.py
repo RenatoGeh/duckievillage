@@ -39,7 +39,7 @@ from duckievillage import DuckievillageEnv
 # our tasks in.
 env = DuckievillageEnv(
   seed = 101,
-  map_name = '../maps/loop_empty.yaml',
+  map_name = 'loop_empty',
   draw_curve = False,
   draw_bbox = False,
   domain_rand = False,

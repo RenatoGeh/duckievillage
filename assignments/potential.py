@@ -40,6 +40,7 @@ from duckievillage import DuckievillageEnv
 env = DuckievillageEnv(
   seed = 101,
   map_name = './maps/catch.yaml',
+  is_external_map = True,
   draw_curve = False,
   draw_bbox = False,
   domain_rand = False,

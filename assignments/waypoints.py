@@ -46,7 +46,7 @@ from duckievillage import DuckievillageEnv
 
 env = DuckievillageEnv(
   seed = 101,
-  map_name = './maps/udem1.yaml',
+  map_name = 'udem1',
   draw_curve = False,
   draw_bbox = False,
   domain_rand = False,

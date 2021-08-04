@@ -57,6 +57,7 @@ which = 0
 env = DuckievillageEnv(
   seed = 101,
   map_name = TRACKS[which][0],
+  is_external_map = True,
   draw_curve = False,
   draw_bbox = False,
   domain_rand = False,
