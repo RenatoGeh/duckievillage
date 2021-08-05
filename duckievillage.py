@@ -397,13 +397,42 @@ class RoadSensor:
         return c
     return None
 
+# Light sensor.
+class LightSensor:
+  def __init__(self, env, n_sensors: int, priority: str):
+    self._env = env
+    if n_sensors == 0: return
+    assert n_sensors % 2 == 0, "Number of sensors must be even."
+    X, Y = WINDOW_WIDTH, WINDOW_HEIGHT
+    if n_sensors == 2:
+      if priority == LightSensor.VERTICAL: n, m, dx, dy = 2, 1, X//2, 0
+      else: n, m, dx, dy = 1, 2, 0, Y//2
+    else:
+      if priority == 'h':
+        m = int(math.sqrt(n_sensors))
+        n = n_sensors//m
+      else:
+        n = int(math.sqrt(n_sensors))
+        m = n_sensors//n
+      dx, dy = X//n, Y//m
+    self._sensors = []
+    for i in range(n):
+      for j in range(m):
+        x1, y1 = i*dx, j*dy
+        x2 = X if i == n-1 else (i+1)*dx
+        y2 = Y if j == m-1 else (j+1)*dy
+        self._sensors.append((slice(x1, x2), slice(y1, y2)))
+
+  def measure(self):
+    I = np.dot(self._env.front()[...,:3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
+    return [np.mean(I[y,x])/255 for x, y in self._sensors]
+
 class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
   top_down = False
 
-  def __init__(self, top_down = False, cam_height = 5, **kwargs):
-    print("     Initializing parent")
+  def __init__(self, top_down = False, cam_height = 5, light_sensors: int = 0,
+               light_priority: str = 'h', **kwargs):
     gym_duckietown.envs.DuckietownEnv.__init__(self, **kwargs)
-    print("     Done initializing parent")
     self.horizon_color = self._perturb(self.color_sky)
     self.cam_fov_y = gym_duckietown.simulator.CAMERA_FOV_Y
     self.top_down = top_down
@@ -425,6 +454,8 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
       if k == '3way' or k == '4way':
         k = 'inter'
       self._roads.append((t['coords'], k))
+
+    self.lightsensor = LightSensor(self, light_sensors, light_priority)
 
   def next_view(self):
     self._view_mode = (self._view_mode + 1) % N_VIEW_MODES
@@ -615,6 +646,14 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
                                                          gym_duckietown.simulator.SAFETY_RAD_MULT,
                                                          self.road_tile_size))
 
+  def add_big_duckie(self, x, y = None, static = True):
+    if y is None:
+      x, y = x[0], x[1]
+    obj = _get_obj_props('duckie', x, y, static, rescale = 3.0)
+    self.objects.append(gym_duckietown.objects.DuckieObj(obj, False,
+                                                         gym_duckietown.simulator.SAFETY_RAD_MULT,
+                                                         self.road_tile_size))
+
   def add_cone(self, x, y = None):
     if y is None:
       x, y = x[0], x[1]
@@ -634,14 +673,35 @@ class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
     self.objects.append(d)
     return d
 
-def _get_obj_props(kind, x, y, static = True):
+  def add_light(self, x, y):
+    li = gl.GL_LIGHT0 + 1
+
+    li_pos = [x, 0.5, y, 1.0]
+    diffuse = [0.5, 0.5, 0.5, 0.5]
+    ambient = [0.5, 0.5, 0.5, 0.5]
+    specular = [0.5, 0.5, 0.5, 1.0]
+    spot_direction = [0.5, -0.5, 0.5]
+    gl.glLightfv(li, gl.GL_POSITION, (gl.GLfloat * 4)(*li_pos))
+    gl.glLightfv(li, gl.GL_AMBIENT, (gl.GLfloat * 4)(*ambient))
+    gl.glLightfv(li, gl.GL_DIFFUSE, (gl.GLfloat * 4)(*diffuse))
+    gl.glLightfv(li, gl.GL_SPECULAR, (gl.GLfloat * 4)(*specular))
+    gl.glLightfv(li, gl.GL_SPOT_DIRECTION, (gl.GLfloat * 3)(*spot_direction))
+    # gl.glLightfv(li, gl.GL_SPOT_EXPONENT, (gl.GLfloat * 1)(64.0))
+    gl.glLightf(li, gl.GL_SPOT_CUTOFF, 60)
+
+    gl.glLightfv(li, gl.GL_CONSTANT_ATTENUATION, (gl.GLfloat * 1)(1.0))
+    # gl.glLightfv(li, gl.GL_LINEAR_ATTENUATION, (gl.GLfloat * 1)(0.1))
+    gl.glLightfv(li, gl.GL_QUADRATIC_ATTENUATION, (gl.GLfloat * 1)(0.2))
+    gl.glEnable(li)
+
+def _get_obj_props(kind, x, y, static = True, rescale = 1.0):
   mesh = gym_duckietown.objmesh.get_mesh(kind)
   return {
     'kind': kind,
     'mesh': mesh,
     'angle': 0,
     'pos': np.array([x, 0, y]),
-    'scale': 0.06 / mesh.max_coords[1],
+    'scale': (0.06 / mesh.max_coords[1])*rescale,
     'y_rot': 0,
     'optional': None,
     'static': static
