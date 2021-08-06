@@ -78,8 +78,7 @@ and follow instructions.
 
 ## Updating Duckievillage
 
-Before running Duckievillage, make sure you have the latest version by running `update.sh` with
-your preferred shell:
+Before running Duckievillage, make sure you have the latest version by running `update.sh`:
 
 ```
 zsh update.sh

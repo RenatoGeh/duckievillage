@@ -427,272 +427,283 @@ class LightSensor:
     I = np.dot(self._env.front()[...,:3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
     return [np.mean(I[y,x])/255 for x, y in self._sensors]
 
-class DuckievillageEnv(gym_duckietown.envs.DuckietownEnv):
-  top_down = False
 
-  def __init__(self, top_down = False, cam_height = 5, light_sensors: int = 0,
-               light_priority: str = 'h', **kwargs):
-    gym_duckietown.envs.DuckietownEnv.__init__(self, **kwargs)
-    self.horizon_color = self._perturb(self.color_sky)
-    self.cam_fov_y = gym_duckietown.simulator.CAMERA_FOV_Y
-    self.top_down = top_down
-    self.topo_graph = _create_topo_graph(self.grid_width, self.grid_height, self.drivable_tiles,
-                                         self.road_tile_size)
-    self.poly_map = PolygonMap(self)
-    for o in self.objects:
-      self.poly_map.add(o)
+def create_env(raw_motor_input: bool = True, **kwargs):
+  class DuckievillageEnv(gym_duckietown.simulator.Simulator if raw_motor_input else gym_duckietown.envs.DuckietownEnv):
+    top_down = False
 
-    self._view_mode = 0
-    self.top_cam_height = cam_height
+    def __init__(self, top_down = False, cam_height = 5, light_sensors: int = 0,
+                 light_priority: str = 'h', enable_topomap: bool = False,
+                 enable_polymap: bool = False, enable_roadsensor: bool = False,
+                 enable_odometer: bool = False, enable_lightsensor: bool = False, **kwargs):
+      super().__init__(**kwargs)
+      self.horizon_color = self._perturb(self.color_sky)
+      self.cam_fov_y = gym_duckietown.simulator.CAMERA_FOV_Y
+      self.top_down = top_down
+      self.topo_graph = _create_topo_graph(self.grid_width, self.grid_height, self.drivable_tiles,
+                                           self.road_tile_size) if enable_topomap else None
+      if enable_polymap:
+        self.poly_map = PolygonMap(self)
+        for o in self.objects:
+          self.poly_map.add(o)
+      else: self.poly_map = None
 
-    self.odometer = Odometer()
-    self.road_sensor = RoadSensor(self)
+      self._view_mode = 0
+      self.top_cam_height = cam_height
 
-    self._roads = []
-    for t in self.drivable_tiles:
-      k = t['kind'].split('_', 1)[0]
-      if k == '3way' or k == '4way':
-        k = 'inter'
-      self._roads.append((t['coords'], k))
+      self.odometer = Odometer() if enable_odometer else None
 
-    self.lightsensor = LightSensor(self, light_sensors, light_priority)
+      if enable_roadsensor:
+        self.road_sensor = RoadSensor(self)
 
-  def next_view(self):
-    self._view_mode = (self._view_mode + 1) % N_VIEW_MODES
+        self._roads = []
+        for t in self.drivable_tiles:
+          k = t['kind'].split('_', 1)[0]
+          if k == '3way' or k == '4way':
+            k = 'inter'
+          self._roads.append((t['coords'], k))
+      else: self.road_sensor = None
 
-  def set_view(self, view):
-    self._view_mode = view % N_VIEW_MODES
+      self.lightsensor = LightSensor(self, light_sensors, light_priority) if enable_lightsensor else None
 
-  def toggle_single_view(self):
-    if self._view_mode == TOP_DOWN_VIEW_MODE:
-      self._view_mode = FRONT_VIEW_MODE
-    else:
-      self._view_mode = TOP_DOWN_VIEW_MODE
+    def next_view(self):
+      self._view_mode = (self._view_mode + 1) % N_VIEW_MODES
 
-  # Returns a list with all road tiles in the current map. Each item of the list contains the
-  # tile indices (not positional coordinates), and the tile type (curve, straight, intersection).
-  def roads(self):
-    return self._roads
+    def set_view(self, view):
+      self._view_mode = view % N_VIEW_MODES
 
-  def current_tile(self):
-    return self.get_grid_coords(self.cur_pos)
+    def toggle_single_view(self):
+      if self._view_mode == TOP_DOWN_VIEW_MODE:
+        self._view_mode = FRONT_VIEW_MODE
+      else:
+        self._view_mode = TOP_DOWN_VIEW_MODE
 
-  def tile_center(self, i, j=None):
-    if j is None:
-      i, j = i[0], i[1]
-    return (np.array([i, j])+0.5)*self.road_tile_size
+    # Returns a list with all road tiles in the current map. Each item of the list contains the
+    # tile indices (not positional coordinates), and the tile type (curve, straight, intersection).
+    def roads(self):
+      return self._roads
 
-  def get_position(self):
-    return np.delete(self.cur_pos, 1)
+    def current_tile(self):
+      return self.get_grid_coords(self.cur_pos)
 
-  def top_down_obs(self, segment = False):
-    return self._render_img(
-      WINDOW_WIDTH,
-      WINDOW_HEIGHT,
-      self.multi_fbo_human,
-      self.final_fbo_human,
-      self.img_array_human,
-      top_down = True,
-      segment=segment,
-    )
+    def tile_center(self, i, j=None):
+      if j is None:
+        i, j = i[0], i[1]
+      return (np.array([i, j])+0.5)*self.road_tile_size
 
-  def front(self, segment = False):
-    return self._render_img(
-      WINDOW_WIDTH,
-      WINDOW_HEIGHT,
-      self.multi_fbo_human,
-      self.final_fbo_human,
-      self.img_array_human,
-      top_down = False,
-      segment=segment,
-    )
+    def get_position(self):
+      return np.delete(self.cur_pos, 1)
 
-  def render(self, mode: str = "human", close: bool = False, segment: bool = False):
-    """
-    Render the environment for human viewing
+    def top_down_obs(self, segment = False):
+      return self._render_img(
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
+        self.multi_fbo_human,
+        self.final_fbo_human,
+        self.img_array_human,
+        top_down = True,
+        segment=segment,
+      )
 
-    mode: "human", "top_down", "free_cam", "rgb_array"
+    def front(self, segment = False):
+      return self._render_img(
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
+        self.multi_fbo_human,
+        self.final_fbo_human,
+        self.img_array_human,
+        top_down = False,
+        segment=segment,
+      )
 
-    """
-    assert mode in ["human", "top_down", "free_cam", "rgb_array"]
+    def render(self, mode: str = "human", close: bool = False, segment: bool = False):
+      """
+      Render the environment for human viewing
 
-    if close:
-      if self.window:
-        self.window.close()
-      return
+      mode: "human", "top_down", "free_cam", "rgb_array"
 
-    top_down = mode == 'top_down'
-    # Render the image
-    top = self.top_down_obs(segment)
-    bot = self.front(segment)
+      """
+      assert mode in ["human", "top_down", "free_cam", "rgb_array"]
 
-    if self.distortion and not self.undistort and mode != "free_cam":
-      bot = self.camera_model.distort(bot)
+      if close:
+        if self.window:
+          self.window.close()
+        return
 
-    win_width = WINDOW_WIDTH
-    if self._view_mode == FULL_VIEW_MODE:
-      img = np.concatenate((top, bot), axis=1)
-      win_width = 2*WINDOW_WIDTH
-    elif self._view_mode == TOP_DOWN_VIEW_MODE:
-      img = top
-    else:
-      img = bot
+      top_down = mode == 'top_down'
+      # Render the image
+      top = self.top_down_obs(segment)
+      bot = self.front(segment)
+
+      if self.distortion and not self.undistort and mode != "free_cam":
+        bot = self.camera_model.distort(bot)
+
+      win_width = WINDOW_WIDTH
+      if self._view_mode == FULL_VIEW_MODE:
+        img = np.concatenate((top, bot), axis=1)
+        win_width = 2*WINDOW_WIDTH
+      elif self._view_mode == TOP_DOWN_VIEW_MODE:
+        img = top
+      else:
+        img = bot
 
 
-    if self.window is not None:
-      self.window.set_size(win_width, WINDOW_HEIGHT)
+      if self.window is not None:
+        self.window.set_size(win_width, WINDOW_HEIGHT)
 
-    if mode == 'rgb_array':
+      if mode == 'rgb_array':
+        return img
+
+      if self.window is None:
+        config = gl.Config(double_buffer=False)
+        self.window = window.Window(
+          width=win_width,
+          height=WINDOW_HEIGHT,
+          resizable=False,
+          config=config
+        )
+
+      self.window.clear()
+      self.window.switch_to()
+      self.window.dispatch_events()
+
+      # Bind the default frame buffer
+      gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
+      # Setup orghogonal projection
+      gl.glMatrixMode(gl.GL_PROJECTION)
+      gl.glLoadIdentity()
+      gl.glMatrixMode(gl.GL_MODELVIEW)
+      gl.glLoadIdentity()
+      gl.glOrtho(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, 0, 10)
+
+      # Draw the image to the rendering window
+      width = img.shape[1]
+      height = img.shape[0]
+      img = np.ascontiguousarray(np.flip(img, axis=0))
+      img_data = image.ImageData(
+        width,
+        height,
+        'RGB',
+        img.ctypes.data_as(POINTER(gl.GLubyte)),
+        pitch=width * 3,
+      )
+      img_data.blit(
+        0,
+        0,
+        0,
+        width=WINDOW_WIDTH,
+        height=WINDOW_HEIGHT
+      )
+
+      # Display position/state information
+      if mode != "free_cam":
+        x, y, z = self.cur_pos
+        self.text_label.text = (
+          f"pos: ({x:.2f}, {y:.2f}, {z:.2f}), angle: "
+          f"{np.rad2deg(self.cur_angle):.1f} deg, steps: {self.step_count}, "
+          f"speed: {self.speed:.2f} m/s"
+        )
+        self.text_label.draw()
+
+      # Force execution of queued commands
+      gl.glFlush()
+
       return img
 
-    if self.window is None:
-      config = gl.Config(double_buffer=False)
-      self.window = window.Window(
-        width=win_width,
-        height=WINDOW_HEIGHT,
-        resizable=False,
-        config=config
-      )
+    def reset(self, segment: bool = False, force = True):
+      if force:
+        self.force_reset(segment)
 
-    self.window.clear()
-    self.window.switch_to()
-    self.window.dispatch_events()
+    def step(self, action):
+      obs, reward, done, info = super().step(action)
+      if self.odometer is not None:
+        metrics = info['DuckietownEnv']
+        self.odometer.update(metrics['omega_l'], metrics['omega_r'], metrics['radius'])
+      return obs, reward, done, info
 
-    # Bind the default frame buffer
-    gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+    def get_dir_vec(self):
+      return gym_duckietown.simulator.get_dir_vec(self.cur_angle)
 
-    # Setup orghogonal projection
-    gl.glMatrixMode(gl.GL_PROJECTION)
-    gl.glLoadIdentity()
-    gl.glMatrixMode(gl.GL_MODELVIEW)
-    gl.glLoadIdentity()
-    gl.glOrtho(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, 0, 10)
+    def force_reset(self, segment: bool = False):
+      super().reset(segment)
 
-    # Draw the image to the rendering window
-    width = img.shape[1]
-    height = img.shape[0]
-    img = np.ascontiguousarray(np.flip(img, axis=0))
-    img_data = image.ImageData(
-      width,
-      height,
-      'RGB',
-      img.ctypes.data_as(POINTER(gl.GLubyte)),
-      pitch=width * 3,
-    )
-    img_data.blit(
-      0,
-      0,
-      0,
-      width=WINDOW_WIDTH,
-      height=WINDOW_HEIGHT
-    )
+    # We have to convert from window positions to actual Duckietown coordinates.
+    def convert_coords(self, x: int, y: int) -> (float, float):
+      # Maps are up to grid_width tiles high. Assuming square tiles and invariant tile dimensions:
+      hx = self.grid_width * self.road_tile_size
+      hy = self.grid_height * self.road_tile_size
+      rx =  hx / WINDOW_WIDTH
+      ry =  hy / WINDOW_HEIGHT
+      # Do some mathemagics.
+      return x*rx, hy - y*ry
 
-    # Display position/state information
-    if mode != "free_cam":
-      x, y, z = self.cur_pos
-      self.text_label.text = (
-        f"pos: ({x:.2f}, {y:.2f}, {z:.2f}), angle: "
-        f"{np.rad2deg(self.cur_angle):.1f} deg, steps: {self.step_count}, "
-        f"speed: {self.speed:.2f} m/s"
-      )
-      self.text_label.draw()
+    # The inverse transformation of the above.
+    def unconvert_coords(self, x: float, y: float = None) -> (int, int):
+      if y is None:
+        x, y = x[0], x[1]
+      hx = self.grid_width * self.road_tile_size
+      hy = self.grid_height * self.road_tile_size
+      rx = WINDOW_WIDTH / hx
+      ry = WINDOW_HEIGHT / hy
+      return round(x*rx), round(WINDOW_HEIGHT - y*ry)
 
-    # Force execution of queued commands
-    gl.glFlush()
+    def add_duckie(self, x, y = None, static = True):
+      if y is None:
+        x, y = x[0], x[1]
+      obj = _get_obj_props('duckie', x, y, static)
+      self.objects.append(gym_duckietown.objects.DuckieObj(obj, False,
+                                                           gym_duckietown.simulator.SAFETY_RAD_MULT,
+                                                           self.road_tile_size))
 
-    return img
+    def add_big_duckie(self, x, y = None, static = True):
+      if y is None:
+        x, y = x[0], x[1]
+      obj = _get_obj_props('duckie', x, y, static, rescale = 3.0)
+      self.objects.append(gym_duckietown.objects.DuckieObj(obj, False,
+                                                           gym_duckietown.simulator.SAFETY_RAD_MULT,
+                                                           self.road_tile_size))
 
-  def reset(self, segment: bool = False, force = True):
-    if force:
-      self.force_reset(segment)
+    def add_cone(self, x, y = None):
+      if y is None:
+        x, y = x[0], x[1]
+      obj = _get_obj_props('cone', x, y, True)
+      self.objects.append(gym_duckietown.objects.WorldObj(obj, False,
+                                                          gym_duckietown.simulator.SAFETY_RAD_MULT))
 
-  def step(self, action):
-    obs, reward, done, info = gym_duckietown.envs.DuckietownEnv.step(self, action)
-    metrics = info['DuckietownEnv']
-    self.odometer.update(metrics['omega_l'], metrics['omega_r'], metrics['radius'])
-    return obs, reward, done, info
+    def add_walking_duckie(self, x, y = None):
+      if y is None:
+        x, y = x[0], x[1]
+      obj = _get_obj_props('duckie', x, y, False)
+      obj['kind'] = 'duckiebot'
+      d = gym_duckietown.objects.DuckiebotObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT,
+                                              gym_duckietown.simulator.WHEEL_DIST,
+                                              gym_duckietown.simulator.ROBOT_WIDTH,
+                                              gym_duckietown.simulator.ROBOT_LENGTH)
+      self.objects.append(d)
+      return d
 
-  def get_dir_vec(self):
-    return gym_duckietown.simulator.get_dir_vec(self.cur_angle)
+    def add_light(self, x, y):
+      li = gl.GL_LIGHT0 + 1
 
-  def force_reset(self, segment: bool = False):
-    gym_duckietown.envs.DuckietownEnv.reset(self, segment)
+      li_pos = [x, 0.5, y, 1.0]
+      diffuse = [0.5, 0.5, 0.5, 0.5]
+      ambient = [0.5, 0.5, 0.5, 0.5]
+      specular = [0.5, 0.5, 0.5, 1.0]
+      spot_direction = [0.5, -0.5, 0.5]
+      gl.glLightfv(li, gl.GL_POSITION, (gl.GLfloat * 4)(*li_pos))
+      gl.glLightfv(li, gl.GL_AMBIENT, (gl.GLfloat * 4)(*ambient))
+      gl.glLightfv(li, gl.GL_DIFFUSE, (gl.GLfloat * 4)(*diffuse))
+      gl.glLightfv(li, gl.GL_SPECULAR, (gl.GLfloat * 4)(*specular))
+      gl.glLightfv(li, gl.GL_SPOT_DIRECTION, (gl.GLfloat * 3)(*spot_direction))
+      # gl.glLightfv(li, gl.GL_SPOT_EXPONENT, (gl.GLfloat * 1)(64.0))
+      gl.glLightf(li, gl.GL_SPOT_CUTOFF, 60)
 
-  # We have to convert from window positions to actual Duckietown coordinates.
-  def convert_coords(self, x: int, y: int) -> (float, float):
-    # Maps are up to grid_width tiles high. Assuming square tiles and invariant tile dimensions:
-    hx = self.grid_width * self.road_tile_size
-    hy = self.grid_height * self.road_tile_size
-    rx =  hx / WINDOW_WIDTH
-    ry =  hy / WINDOW_HEIGHT
-    # Do some mathemagics.
-    return x*rx, hy - y*ry
-
-  # The inverse transformation of the above.
-  def unconvert_coords(self, x: float, y: float = None) -> (int, int):
-    if y is None:
-      x, y = x[0], x[1]
-    hx = self.grid_width * self.road_tile_size
-    hy = self.grid_height * self.road_tile_size
-    rx = WINDOW_WIDTH / hx
-    ry = WINDOW_HEIGHT / hy
-    return round(x*rx), round(WINDOW_HEIGHT - y*ry)
-
-  def add_duckie(self, x, y = None, static = True):
-    if y is None:
-      x, y = x[0], x[1]
-    obj = _get_obj_props('duckie', x, y, static)
-    self.objects.append(gym_duckietown.objects.DuckieObj(obj, False,
-                                                         gym_duckietown.simulator.SAFETY_RAD_MULT,
-                                                         self.road_tile_size))
-
-  def add_big_duckie(self, x, y = None, static = True):
-    if y is None:
-      x, y = x[0], x[1]
-    obj = _get_obj_props('duckie', x, y, static, rescale = 3.0)
-    self.objects.append(gym_duckietown.objects.DuckieObj(obj, False,
-                                                         gym_duckietown.simulator.SAFETY_RAD_MULT,
-                                                         self.road_tile_size))
-
-  def add_cone(self, x, y = None):
-    if y is None:
-      x, y = x[0], x[1]
-    obj = _get_obj_props('cone', x, y, True)
-    self.objects.append(gym_duckietown.objects.WorldObj(obj, False,
-                                                        gym_duckietown.simulator.SAFETY_RAD_MULT))
-
-  def add_walking_duckie(self, x, y = None):
-    if y is None:
-      x, y = x[0], x[1]
-    obj = _get_obj_props('duckie', x, y, False)
-    obj['kind'] = 'duckiebot'
-    d = gym_duckietown.objects.DuckiebotObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT,
-                                            gym_duckietown.simulator.WHEEL_DIST,
-                                            gym_duckietown.simulator.ROBOT_WIDTH,
-                                            gym_duckietown.simulator.ROBOT_LENGTH)
-    self.objects.append(d)
-    return d
-
-  def add_light(self, x, y):
-    li = gl.GL_LIGHT0 + 1
-
-    li_pos = [x, 0.5, y, 1.0]
-    diffuse = [0.5, 0.5, 0.5, 0.5]
-    ambient = [0.5, 0.5, 0.5, 0.5]
-    specular = [0.5, 0.5, 0.5, 1.0]
-    spot_direction = [0.5, -0.5, 0.5]
-    gl.glLightfv(li, gl.GL_POSITION, (gl.GLfloat * 4)(*li_pos))
-    gl.glLightfv(li, gl.GL_AMBIENT, (gl.GLfloat * 4)(*ambient))
-    gl.glLightfv(li, gl.GL_DIFFUSE, (gl.GLfloat * 4)(*diffuse))
-    gl.glLightfv(li, gl.GL_SPECULAR, (gl.GLfloat * 4)(*specular))
-    gl.glLightfv(li, gl.GL_SPOT_DIRECTION, (gl.GLfloat * 3)(*spot_direction))
-    # gl.glLightfv(li, gl.GL_SPOT_EXPONENT, (gl.GLfloat * 1)(64.0))
-    gl.glLightf(li, gl.GL_SPOT_CUTOFF, 60)
-
-    gl.glLightfv(li, gl.GL_CONSTANT_ATTENUATION, (gl.GLfloat * 1)(1.0))
-    # gl.glLightfv(li, gl.GL_LINEAR_ATTENUATION, (gl.GLfloat * 1)(0.1))
-    gl.glLightfv(li, gl.GL_QUADRATIC_ATTENUATION, (gl.GLfloat * 1)(0.2))
-    gl.glEnable(li)
+      gl.glLightfv(li, gl.GL_CONSTANT_ATTENUATION, (gl.GLfloat * 1)(1.0))
+      # gl.glLightfv(li, gl.GL_LINEAR_ATTENUATION, (gl.GLfloat * 1)(0.1))
+      gl.glLightfv(li, gl.GL_QUADRATIC_ATTENUATION, (gl.GLfloat * 1)(0.2))
+      gl.glEnable(li)
+  return DuckievillageEnv(**kwargs)
 
 def _get_obj_props(kind, x, y, static = True, rescale = 1.0):
   mesh = gym_duckietown.objmesh.get_mesh(kind)
