@@ -4,19 +4,25 @@ function exit_with_error {
   exit 1
 }
 
+# Get current shell.
+function get_shell_rc {
+  echo "${HOME}/.$(basename $(readlink /proc/$$/exe))rc"
+}
+
 # Print help.
 if [[ "$*" == *--help* ]] || [[ "$*" == *-h* ]]; then
   echo "Usage: $0 [-h|--help] rcfile"
   echo "  Flags:"
   echo "    -h | --help  - Prints this help message."
   echo "  Positional arguments:"
-  echo "    rcfile       - Path to your rc file. If none is given, assume ${HOME}/.bashrc"
+  echo "    rcfile       - Path to your rc file. If none is given, assume $(get_shell_rc)"
   exit 0
 fi
 
 # Set shell rc path.
 if [ -z "$1" ]; then
-  _shell="${HOME}/.bashrc"
+  _shell="$(get_shell_rc)"
+  echo "No rcfile given. Assuming ${_shell} as rcfile."
 else
   _shell="$1"
 fi
@@ -63,21 +69,30 @@ conda activate duckietown || exit_with_error
 # Manually add dependencies which are not in the Anaconda repositories.
 echo "Installing pip dependencies..."
 pip install -r duckietown/requirements.txt || exit_with_error
+
+# Clone assignments.
+printf "Check if assignments is cloned... "
+if [ ! -d "assignments" ]; then
+  echo "not cloned."
+  git clone "https://github.com/RenatoGeh/duckievillage-assignments.git" assignments || exit_with_error
+else
+  echo "OK"
+fi
+
+# Run test.
 echo ""
+echo "Do you want to run a test to see if everything is working?"
+select opt in "Yes" "No"; do
+  case $opt in
+    Yes ) source ${_shell} && python3 assignments/manual/manual.py; break;;
+    No ) break;;
+  esac
+done
+
 echo "---"
 echo "To run Duckievillage, you'll first need to run the following command:"
 echo "       conda activate duckietown"
 echo "This has to be done for every shell session before using Duckievillage."
-echo "---"
-
-# Run test.
-echo "Do you want to run a test to see if everything is working?"
-select opt in "Yes" "No"; do
-  case $opt in
-    Yes ) source ${_shell} && python3 -m assignments.manual; break;;
-    No ) break;;
-  esac
-done
 
 # Revert working directory changes.
 popd || exit_with_error

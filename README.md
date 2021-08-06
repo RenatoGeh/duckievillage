@@ -46,7 +46,7 @@ Alternatively, you might want to manually install by following these steps:
 1. Install [Anaconda](https://www.anaconda.com/distribution/)
 2. `git clone https://github.com/RenatoGeh/duckievillage.git`
 3. `cd duckievillage`
-4. `git clone https://github.com/duckietown/gym-duckietown.git duckietown`
+4. `git clone https://github.com/RenatoGeh/gym-duckietown.git duckietown`
 5. `cd duckietown`
 6. `conda env create -f environment.yaml --name duckietown`
 7. `echo "export PYTHONPATH=\"\${PYTHONPATH}:$(pwd)\"" >> ~/.bashrc`
@@ -73,6 +73,19 @@ You should see the environment for the first exercise.
 
 To uninstall, simply run `uninstall.sh` with the same shell you used for installing Duckievillage
 and follow instructions.
+
+---
+
+## Updating Duckievillage
+
+Before running Duckievillage, make sure you have the latest version by running `update.sh` with
+your preferred shell:
+
+```
+zsh update.sh
+```
+
+This will update Duckievillage, Duckietown and assignments.
 
 ---
 

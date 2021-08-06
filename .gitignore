@@ -1,7 +1,8 @@
 # Ignore duckietown.
-duckietown/
-gym-duckietown/
-solutions/
+duckietown
+gym-duckietown
+solutions
+assignments
 
 # Output files
 waypoints.txt
