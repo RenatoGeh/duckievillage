@@ -11,6 +11,7 @@ import math
 from ctypes import POINTER
 
 import numpy as np
+import cv2
 import gym_duckietown.objmesh
 import gym_duckietown.objects
 import gym_duckietown.simulator
@@ -399,41 +400,43 @@ class RoadSensor:
 
 # Light sensor.
 class LightSensor:
-  def __init__(self, env, n_sensors: int, priority: str):
-    self._env = env
-    if n_sensors == 0: return
-    assert n_sensors % 2 == 0, "Number of sensors must be even."
-    X, Y = WINDOW_WIDTH, WINDOW_HEIGHT
-    if n_sensors == 2:
-      if priority == LightSensor.VERTICAL: n, m, dx, dy = 2, 1, X//2, 0
-      else: n, m, dx, dy = 1, 2, 0, Y//2
-    else:
-      if priority == 'h':
-        m = int(math.sqrt(n_sensors))
-        n = n_sensors//m
-      else:
-        n = int(math.sqrt(n_sensors))
-        m = n_sensors//n
-      dx, dy = X//n, Y//m
-    self._sensors = []
-    for i in range(n):
-      for j in range(m):
-        x1, y1 = i*dx, j*dy
-        x2 = X if i == n-1 else (i+1)*dx
-        y2 = Y if j == m-1 else (j+1)*dy
-        self._sensors.append((slice(x1, x2), slice(y1, y2)))
+  DUCKIE_LOWER_HSV = np.array([0, 50, 70])
+  DUCKIE_UPPER_HSV = np.array([40, 255, 255])
 
-  def measure(self):
-    I = np.dot(self._env.front()[...,:3], [0.2989, 0.5870, 0.1140]).astype(np.uint8)
-    return [np.mean(I[y,x])/255 for x, y in self._sensors]
+  @staticmethod
+  def _rescale(a: float, L: float, U: float):
+    if np.allclose(L, U): return 0.0
+    return (a-L)/(U-L)
+
+  def __init__(self, env):
+    self._env = env
+    self.l_max = -math.inf
+    self.r_max = -math.inf
+    self.l_min = math.inf
+    self.r_min = math.inf
+
+  # Measures "light" intensity (it really measures Duckie intensity) and returns how much power to
+  # give to left and right motors.
+  def measure(self, left_motor_matrix, right_motor_matrix):
+    I = cv2.inRange(cv2.cvtColor(self._env.front(), cv2.COLOR_RGB2HSV),
+                    LightSensor.DUCKIE_LOWER_HSV, LightSensor.DUCKIE_UPPER_HSV)
+    x, y = I.shape[0], I.shape[1]
+    L, R = left_motor_matrix(x, y), right_motor_matrix(x, y)
+    l, r = float(np.sum(I * L)), float(np.sum(I * R))
+    self.l_max = max(l, self.l_max)
+    self.r_max = max(r, self.r_max)
+    self.l_min = min(l, self.l_min)
+    self.r_min = min(r, self.r_min)
+    ls = LightSensor._rescale(l, self.l_min, self.l_max)
+    rs = LightSensor._rescale(r, self.r_min, self.r_max)
+    return ls, rs
 
 
 def create_env(raw_motor_input: bool = True, **kwargs):
   class DuckievillageEnv(gym_duckietown.simulator.Simulator if raw_motor_input else gym_duckietown.envs.DuckietownEnv):
     top_down = False
 
-    def __init__(self, top_down = False, cam_height = 5, light_sensors: int = 0,
-                 light_priority: str = 'h', enable_topomap: bool = False,
+    def __init__(self, top_down = False, cam_height = 5, enable_topomap: bool = False,
                  enable_polymap: bool = False, enable_roadsensor: bool = False,
                  enable_odometer: bool = False, enable_lightsensor: bool = False, **kwargs):
       super().__init__(**kwargs)
@@ -464,7 +467,7 @@ def create_env(raw_motor_input: bool = True, **kwargs):
           self._roads.append((t['coords'], k))
       else: self.road_sensor = None
 
-      self.lightsensor = LightSensor(self, light_sensors, light_priority) if enable_lightsensor else None
+      self.lightsensor = LightSensor(self) if enable_lightsensor else None
 
     def next_view(self):
       self._view_mode = (self._view_mode + 1) % N_VIEW_MODES

@@ -10,6 +10,12 @@ if ! command -v git &> /dev/null; then
 fi
 echo "OK"
 
+printf "Setting up conda.sh... "
+conda_path="$(conda config --show root_prefix | awk '{print $2};')"
+[ ! -z $conda_path ] || exit_with_error
+source "${conda_path}/etc/profile.d/conda.sh" || exit_with_error
+echo "OK"
+
 # Save current working directory and cd to Duckievillage.
 pushd . || exit_with_error
 cd "$(dirname "$0")" || exit_with_error
@@ -17,6 +23,8 @@ cd "$(dirname "$0")" || exit_with_error
 printf "Updating Duckietown... "
 cd duckietown || exit_with_error
 git pull || exit_with_error
+conda activate duckietown || exit_with_error
+conda env update --file environment.yaml --prune || exit_with_error
 cd .. || exit_with_error
 
 printf "Updating assignments... "
