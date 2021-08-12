@@ -468,6 +468,7 @@ def create_env(raw_motor_input: bool = True, **kwargs):
       else: self.road_sensor = None
 
       self.lightsensor = LightSensor(self) if enable_lightsensor else None
+      self.actions = [0, 0]
 
     def next_view(self):
       self._view_mode = (self._view_mode + 1) % N_VIEW_MODES
@@ -618,8 +619,9 @@ def create_env(raw_motor_input: bool = True, **kwargs):
       if force:
         self.force_reset(segment)
 
-    def step(self, action):
-      obs, reward, done, info = super().step(action)
+    def step(self, pwm_left: float, pwm_right: float):
+      self.actions[0], self.actions[1] = pwm_left, pwm_right
+      obs, reward, done, info = super().step(self.actions)
       if self.odometer is not None:
         metrics = info['DuckietownEnv']
         self.odometer.update(metrics['omega_l'], metrics['omega_r'], metrics['radius'])

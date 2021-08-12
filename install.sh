@@ -74,7 +74,10 @@ pip install -r duckietown/requirements.txt || exit_with_error
 printf "Check if assignments is cloned... "
 if [ ! -d "assignments" ]; then
   echo "not cloned."
-  git clone "https://github.com/RenatoGeh/duckievillage-assignments.git" assignments || exit_with_error
+  until git clone "https://gitlab.uspdigital.usp.br/mac0318-2021/assignments.git" assignments; do
+    echo "Something went wrong. Try again."
+    echo "  (Exit at any time with Ctrl+C. If you do, we recommend running uninstall.sh before retrying.)"
+  done
 else
   echo "OK"
 fi
