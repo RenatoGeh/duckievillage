@@ -44,7 +44,7 @@ You'll have to do this for every session before running Duckievillage.
 Alternatively, you might want to manually install by following these steps:
 
 1. Install [Anaconda](https://www.anaconda.com/distribution/)
-2. `git clone https://github.com/RenatoGeh/duckievillage.git`
+2. `git clone https:///gitlab.uspdigital.usp.br/mac0318-2021/duckievillage.git`
 3. `cd duckievillage`
 4. `git clone https://github.com/RenatoGeh/gym-duckietown.git duckietown`
 5. `cd duckietown`
@@ -54,6 +54,7 @@ Alternatively, you might want to manually install by following these steps:
 9. `conda activate duckietown`
 10. `pip install -r requirements.txt`
 11. `cd ..`
+12. `git clone https://gitlab.uspdigital.usp.br/mac0318-2021/assignments.git assignments`
 
 Before every terminal session, activate `duckietown`'s environment:
 
@@ -64,7 +65,7 @@ source activate gym-duckietown
 Test your environment:
 
 ```
-python3 -m assignments.manual
+python3 assignments/manual/manual.py
 ```
 
 You should see the environment for the first exercise.
@@ -90,4 +91,4 @@ This will update Duckievillage, Duckietown and assignments.
 
 ## Schedule
 
-TBA
+See the [wiki](https://gitlab.uspdigital.usp.br/groups/mac0318-2021/-/wikis/Vis%C3%A3o-geral).
