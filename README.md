@@ -59,7 +59,7 @@ Alternatively, you might want to manually install by following these steps:
 Before every terminal session, activate `duckietown`'s environment:
 
 ```
-source activate gym-duckietown
+conda activate duckietown
 ```
 
 Test your environment:
