@@ -89,6 +89,42 @@ This will update Duckievillage, Duckietown and assignments.
 
 ---
 
+## Frequently Asked Questions
+
+1. Why do I keep getting permission denied when trying to clone Duckievillage by HTTPS?
+
+> You have to set up an HTTPS password: https://gitlab.uspdigital.usp.br/-/profile/password/edit
+
+2. I get a permission denied when trying to clone from within a WSL shell!
+
+> You should clone from a WSL partition, and not your Windows NTFS. Do `cd ~` and retry.
+
+3. `ModuleNotFoundError: No module named 'duckievillage'`
+
+> You have to `cd` to the Duckievillage root directory (i.e. the directory you cloned). If the
+> error persists, try either closing your shell session and opening another one (don't forget to
+> `cd` to the Duckievillage root directory and activate your environment with `conda`), or sourcing
+> your rcfile.
+
+4. `ModuleNotFoundError: No module named 'zuper_commons'`
+
+> You have to activate the Duckietown environment: `conda activate duckietown`.
+
+5. `install.sh: line 2: syntax error near unexpected token $'{\r`
+
+> This is a Windows error (due to carriage return). Git Windows adds carriage returns. You can
+> Removing these carriage returns or cloning within WSL should fix this. Do note that Windows is
+> not supported in Duckievillage.
+
+6. `pyglet.gl.ContextException: Could not create GL context`
+
+> This might either be a VM issue or a Pyglet version issue. VMs are not supported in
+> Duckievillage. If it's Pyglet, you may want to either try updating the Anaconda environment with
+> the latest python and packages; or alternatively ditch Anaconda and install everything with
+> `pip`.
+
+---
+
 ## Schedule
 
 See the [wiki](https://gitlab.uspdigital.usp.br/groups/mac0318-2021/-/wikis/Vis%C3%A3o-geral).
