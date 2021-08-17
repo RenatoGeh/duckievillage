@@ -95,7 +95,8 @@ And assignments:
 
 Make sure your rcfile (replace `.bashrc` with your own) contains Duckietown in your python path:
 
-`echo "export PYTHONPATH=\"\${PYTHONPATH}:$(pwd)\"" >> ~/.bashrc`
+`echo "export PYTHONPATH=\"\${PYTHONPATH}:$(pwd)/duckietown/src\"" >> ~/.bashrc`
+
 
 Resource your rcfile:
 
