@@ -1,0 +1,17 @@
+torch
+torchvision
+tensorflow
+pyzmq
+numpy
+PyYAML
+termcolor
+opencv-python
+matplotlib
+scikit-learn
+scikit-image
+gym
+pyglet
+duckietown-world-daffy
+pipdeptree
+typing-extensions
+carnivalmirror

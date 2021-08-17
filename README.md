@@ -70,6 +70,29 @@ python3 assignments/manual/manual.py
 
 You should see the environment for the first exercise.
 
+### Alternative `pip` installation
+
+Another alternative is to install everything through pip. It is **highly recommended** you use a
+python environment if you install this way. Here is an example on how to create one:
+
+`mkdir -p ~/.venv && cd ~/.venv && python3 -m venv duckietown`
+
+To activate this environment, do
+
+`source ~/.venv/duckietown/bin/activate`
+
+You can then install Duckievillage by the following command:
+
+`pip install -r requirements.txt`
+
+Test your setup with
+
+```
+python3 assignments/manual/manual.py
+```
+
+Don't forget to activate your environment for every new shell session!
+
 ## Uninstallation
 
 To uninstall, simply run `uninstall.sh` with the same shell you used for installing Duckievillage
