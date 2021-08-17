@@ -161,7 +161,11 @@ This will update Duckievillage, Duckietown and assignments.
 > This might either be a VM issue or a Pyglet version issue. VMs are not supported in
 > Duckievillage. If it's Pyglet, you may want to either try updating the Anaconda environment with
 > the latest python and packages; or alternatively ditch Anaconda and install everything with
-> `pip`.
+> `pip`. For the latter, you might want to completely remove Anaconda so Python doesn't get
+> confused with package versions (or at least completely isolate Anaconda from another Python
+> environment. See the [pip alternative](#alternative-pip-installation) instructions. Wayland might
+> also cause this problem. Consider using a Xorg backend for your Desktop Environment or Window
+> Manager instead.
 
 ---
 
