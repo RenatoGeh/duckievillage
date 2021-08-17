@@ -75,17 +75,33 @@ You should see the environment for the first exercise.
 Another alternative is to install everything through pip. It is **highly recommended** you use a
 python environment if you install this way. Here is an example on how to create one:
 
-`mkdir -p ~/.venv && cd ~/.venv && python3 -m venv duckietown`
+`mkdir -p ~/.venv && cd ~/.venv && python3 -m venv duckietown && cd -`
 
 To activate this environment, do
 
 `source ~/.venv/duckietown/bin/activate`
 
-You can then install Duckievillage by the following command:
+You can then install Duckievillage by the following command under the Duckievillage root directory:
 
 `pip install -r requirements.txt`
 
-Test your setup with
+Clone Duckietown if you haven't yet:
+
+`[ ! -d "duckietown" ] && git clone https://github.com/RenatoGeh/gym-duckietown.git duckietown`
+
+And assignments:
+
+`[ ! -d "assignments" ] && git clone https://gitlab.uspdigital.usp.br/mac0318-2021/assignments.git assignments`
+
+Make sure your rcfile (replace `.bashrc` with your own) contains Duckietown in your python path:
+
+`echo "export PYTHONPATH=\"\${PYTHONPATH}:$(pwd)\"" >> ~/.bashrc`
+
+Resource your rcfile:
+
+`source ~/.bashrc`
+
+Test your setup with:
 
 ```
 python3 assignments/manual/manual.py
