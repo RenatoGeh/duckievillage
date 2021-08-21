@@ -432,8 +432,9 @@ class LightSensor:
     return ls, rs
 
 
-def create_env(raw_motor_input: bool = True, **kwargs):
-  class DuckievillageEnv(gym_duckietown.simulator.Simulator if raw_motor_input else gym_duckietown.envs.DuckietownEnv):
+def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
+  class DuckievillageEnv(gym_duckietown.envs.DuckietownNoisyEnv if noisy else
+                         gym_duckietown.simulator.Simulator if raw_motor_input else gym_duckietown.envs.DuckietownEnv):
     top_down = False
 
     def __init__(self, top_down = False, cam_height = 5, enable_topomap: bool = False,
