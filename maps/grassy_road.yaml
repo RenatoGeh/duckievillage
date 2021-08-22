@@ -5,4 +5,11 @@ tiles:
 - [grass, grass, grass, grass, grass]
 - [grass, grass, grass, grass, grass]
 
+objects:
+
+- kind: duckie
+  pos: [2.5, 1.75]
+  rotate: 195
+  height: 0.15
+
 tile_size: 0.585
