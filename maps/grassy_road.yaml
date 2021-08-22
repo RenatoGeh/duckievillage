@@ -1,0 +1,8 @@
+tiles:
+- [grass, grass, grass, grass, grass]
+- [grass, grass, grass, grass, grass]
+- [straight/W, straight/W, straight/W, straight/W, straight/W]
+- [grass, grass, grass, grass, grass]
+- [grass, grass, grass, grass, grass]
+
+tile_size: 0.585
