@@ -14,6 +14,11 @@ echo "OK"
 pushd . || exit_with_error
 cd "$(dirname "$0")" || exit_with_error
 
+printf "Updating Duckietown... "
+cd duckietown || exit_with_error
+git pull || exit_with_error
+cd ..
+
 printf "Check if Anaconda is installed... "
 if ! command -v conda &> /dev/null; then
   echo "Anaconda not found! Assuming Duckievillage was installed another way. Not updating dependencies."
@@ -28,19 +33,14 @@ else
     source "${conda_path}/etc/profile.d/conda.sh" || exit_with_error
     echo "OK"
 
-    printf "Updating Duckietown... "
+    echo "Updating dependencies..."
     cd duckietown || exit_with_error
-    git pull || exit_with_error
     conda activate duckietown || exit_with_error
     conda env update --file environment.yaml --prune || exit_with_error
     cd .. || exit_with_error
   fi
   echo "Doesn't exist! Assuming Duckievillage was installed another way. Not updating dependencies."
 fi
-
-cd duckietown || exit_with_error
-git pull || exit_with_error
-cd ..
 
 printf "Updating assignments... "
 cd assignments || exit_with_error
