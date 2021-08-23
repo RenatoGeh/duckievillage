@@ -14,6 +14,10 @@ echo "OK"
 pushd . || exit_with_error
 cd "$(dirname "$0")" || exit_with_error
 
+echo "Updating Duckievillage... "
+git pull || exit_with_error
+popd || exit_with_error
+
 printf "Updating Duckietown... "
 cd duckietown || exit_with_error
 git pull || exit_with_error
@@ -46,10 +50,6 @@ printf "Updating assignments... "
 cd assignments || exit_with_error
 git pull || exit_with error
 cd .. || exit_with_error
-
-echo "Updating Duckievillage... "
-git pull || exit_with_error
-popd || exit_with_error
 
 echo "---"
 echo "All done."
