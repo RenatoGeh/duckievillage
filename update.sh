@@ -38,6 +38,10 @@ else
   echo "Doesn't exist! Assuming Duckievillage was installed another way. Not updating dependencies."
 fi
 
+cd duckietown || exit_with_error
+git pull || exit_with_error
+cd ..
+
 printf "Updating assignments... "
 cd assignments || exit_with_error
 git pull || exit_with error
