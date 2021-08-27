@@ -718,8 +718,12 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       return np.cross(u, v)/(np.linalg.norm(u, ord=1)*np.linalg.norm(v, ord=1))
 
     def lf_target(self):
-      cd, _ = self.closest_curve_point(self.cur_pos, self.cur_angle, delta = 0.2)
-      return self.sine_target(np.delete(cd-self.cur_pos, 1))
+      _, ct, c0 = self.closest_curve_point(self.cur_pos, self.cur_angle, delta = 0.2)
+      u, v = np.delete(c0, 1), np.delete(ct, 1)
+      p = u-self.get_position()
+      t = math.asin(self.sine_target(v))
+      d = np.linalg.norm(p)*np.sign(self.sine_target(p, v))
+      return d, t
 
   return DuckievillageEnv(**kwargs)
 
