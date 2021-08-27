@@ -13,6 +13,7 @@ from ctypes import POINTER
 import numpy as np
 import numpy.linalg
 import cv2
+import gym.wrappers.monitoring.video_recorder
 import gym_duckietown.objmesh
 import gym_duckietown.objects
 import gym_duckietown.simulator
@@ -440,7 +441,8 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
 
     def __init__(self, top_down = False, cam_height = 5, enable_topomap: bool = False,
                  enable_polymap: bool = False, enable_roadsensor: bool = False,
-                 enable_odometer: bool = False, enable_lightsensor: bool = False, **kwargs):
+                 enable_odometer: bool = False, enable_lightsensor: bool = False,
+                 video_path: str = None, **kwargs):
       super().__init__(**kwargs)
       self.horizon_color = self._perturb(self.color_sky)
       self.cam_fov_y = gym_duckietown.simulator.CAMERA_FOV_Y
@@ -471,6 +473,10 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
 
       self.lightsensor = LightSensor(self) if enable_lightsensor else None
       self.actions = [0, 0]
+
+      if video_path is not None:
+        self.rec = gym.wrappers.monitoring.video_recorder.VideoRecorder(self, path=video_path, enabled = True)
+      else: self.rec = None
 
     def next_view(self):
       self._view_mode = (self._view_mode + 1) % N_VIEW_MODES
@@ -615,7 +621,15 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       # Force execution of queued commands
       gl.glFlush()
 
+      if self.rec is not None:
+        self.rec.capture_frame()
+
       return img
+
+    def close(self):
+      if self.rec is not None:
+        self.rec.close()
+      super().close()
 
     def reset(self, segment: bool = False, force = True):
       if force:
