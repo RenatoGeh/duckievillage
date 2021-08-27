@@ -11,6 +11,7 @@ import math
 from ctypes import POINTER
 
 import numpy as np
+import numpy.linalg
 import cv2
 import gym_duckietown.objmesh
 import gym_duckietown.objects
@@ -709,6 +710,17 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       # gl.glLightfv(li, gl.GL_LINEAR_ATTENUATION, (gl.GLfloat * 1)(0.1))
       gl.glLightfv(li, gl.GL_QUADRATIC_ATTENUATION, (gl.GLfloat * 1)(0.2))
       gl.glEnable(li)
+
+    def sine_target(self, t: np.ndarray, s: np.ndarray = None):
+      if s is None:
+        s = np.delete(self.get_dir_vec(), 1)
+      u, v = s/np.linalg.norm(s), t/np.linalg.norm(t)
+      return np.cross(u, v)/(np.linalg.norm(u, ord=1)*np.linalg.norm(v, ord=1))
+
+    def lf_target(self):
+      cd, _ = self.closest_curve_point(self.cur_pos, self.cur_angle, delta = 0.2)
+      return self.sine_target(np.delete(cd-self.cur_pos, 1))
+
   return DuckievillageEnv(**kwargs)
 
 def _get_obj_props(kind, x, y, static = True, rescale = 1.0):
