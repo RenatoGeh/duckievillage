@@ -528,7 +528,7 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
         segment=segment,
       )
 
-    def render(self, mode: str = "human", close: bool = False, segment: bool = False):
+    def render(self, mode: str = "human", close: bool = False, segment: bool = False, text: str = ""):
       """
       Render the environment for human viewing
 
@@ -616,6 +616,7 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
           f"{np.rad2deg(self.cur_angle):.1f} deg, steps: {self.step_count}, "
           f"speed: {self.speed:.2f} m/s"
         )
+        if len(text) > 0: self.text_label.text += text
         self.text_label.draw()
 
       # Force execution of queued commands
@@ -685,6 +686,18 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
                                                            gym_duckietown.simulator.SAFETY_RAD_MULT,
                                                            self.road_tile_size))
 
+    def add_static_duckie(self, x, y = None, angle = None):
+      if y is None: x, y = x[0], x[1]
+      if angle is None: angle = self.np_random.random()*math.pi
+      obj = _get_obj_props('duckie', x, y, True, rescale = 3.0, angle = angle)
+      self.objects.append(gym_duckietown.objects.WorldObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT))
+
+    def add_static_big_duckie(self, x, y = None, angle = None):
+      if y is None: x, y = x[0], x[1]
+      if angle is None: angle = self.np_random.random()*math.pi
+      obj = _get_obj_props('duckie', x, y, True, angle = angle)
+      self.objects.append(gym_duckietown.objects.WorldObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT))
+
     def add_cone(self, x, y = None):
       if y is None:
         x, y = x[0], x[1]
@@ -741,12 +754,12 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
 
   return DuckievillageEnv(**kwargs)
 
-def _get_obj_props(kind, x, y, static = True, rescale = 1.0):
+def _get_obj_props(kind, x, y, static = True, rescale = 1.0, angle = 0.0):
   mesh = gym_duckietown.objmesh.get_mesh(kind)
   return {
     'kind': kind,
     'mesh': mesh,
-    'angle': 0,
+    'angle': angle,
     'pos': np.array([x, 0, y]),
     'scale': (0.06 / mesh.max_coords[1])*rescale,
     'y_rot': 0,
