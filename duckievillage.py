@@ -8,6 +8,7 @@
 
 import logging
 import math
+import random
 from ctypes import POINTER
 
 import numpy as np
@@ -670,18 +671,18 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       ry = WINDOW_HEIGHT / hy
       return round(x*rx), round(WINDOW_HEIGHT - y*ry)
 
-    def add_duckie(self, x, y = None, static = True):
+    def add_duckie(self, x, y = None, static = True, optional = False):
       if y is None:
         x, y = x[0], x[1]
-      obj = _get_obj_props('duckie', x, y, static)
+      obj = _get_obj_props('duckie', x, y, static, optional = optional)
       self.objects.append(gym_duckietown.objects.DuckieObj(obj, False,
                                                            gym_duckietown.simulator.SAFETY_RAD_MULT,
                                                            self.road_tile_size))
 
-    def add_big_duckie(self, x, y = None, static = True):
+    def add_big_duckie(self, x, y = None, static = True, optional = False):
       if y is None:
         x, y = x[0], x[1]
-      obj = _get_obj_props('duckie', x, y, static, rescale = 3.0)
+      obj = _get_obj_props('duckie', x, y, static, rescale = 3.0, optional = optional)
       self.objects.append(gym_duckietown.objects.DuckieObj(obj, False,
                                                            gym_duckietown.simulator.SAFETY_RAD_MULT,
                                                            self.road_tile_size))
@@ -696,6 +697,12 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       if y is None: x, y = x[0], x[1]
       if angle is None: angle = self.np_random.random()*math.pi
       obj = _get_obj_props('duckie', x, y, True, angle = angle)
+      self.objects.append(gym_duckietown.objects.WorldObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT))
+
+    def add_static_duckiebot(self, x, y = None, angle = None):
+      if y is None: x, y = x[0], x[1]
+      if angle is None: angle = self.np_random.random()*math.pi
+      obj = _get_obj_props('duckiebot', x, y , True, rescale = 2.0, angle = angle)
       self.objects.append(gym_duckietown.objects.WorldObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT))
 
     def add_cone(self, x, y = None):
@@ -752,9 +759,20 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       d = np.linalg.norm(p)*np.sign(self.sine_target(p, v))
       return d, t
 
+    def tile_position(self, x, y, centered: bool = False) -> (float, float):
+      s = self.road_tile_size
+      if centered: return x*s+s/2, y*s+s/2
+      return x*s, y*s
+
+    road_tiles = set(["curve_left", "curve_right", "straight", "4way", "3way_left", "3way_right"])
+
+    def random_road_pose(self) -> (np.ndarray, float):
+      R = [np.array(t["coords"])*self.road_tile_size+self.road_tile_size/2 for t in self.grid if t["kind"] in DuckievillageEnv.road_tiles]
+      return np.insert(random.choice(R), 1, 0), math.pi*self.np_random.random()
+
   return DuckievillageEnv(**kwargs)
 
-def _get_obj_props(kind, x, y, static = True, rescale = 1.0, angle = 0.0):
+def _get_obj_props(kind, x, y, static = True, rescale = 1.0, angle = 0.0, optional = True):
   mesh = gym_duckietown.objmesh.get_mesh(kind)
   return {
     'kind': kind,
@@ -763,6 +781,6 @@ def _get_obj_props(kind, x, y, static = True, rescale = 1.0, angle = 0.0):
     'pos': np.array([x, 0, y]),
     'scale': (0.06 / mesh.max_coords[1])*rescale,
     'y_rot': 0,
-    'optional': None,
+    'optional': optional,
     'static': static
   }
