@@ -20,6 +20,7 @@ import gym_duckietown.objects
 import gym_duckietown.simulator
 import gym_duckietown.envs
 import gym_duckietown.wrappers
+import pyglet
 from pyglet import gl, window, image
 
 WINDOW_WIDTH = 800
@@ -52,7 +53,6 @@ class Waypoints:
 
   # Let's render waypoints.
   def render(self):
-    from pyglet import gl
     gl.glPushAttrib(gl.GL_CURRENT_BIT)
     gl.glColor3f(1.0, 0.0, 0.0)
     # Here we'll render each waypoint as a red square.
@@ -434,6 +434,50 @@ class LightSensor:
     rs = LightSensor._rescale(r, self.r_min, self.r_max)
     return ls, rs
 
+class Histogram:
+  def __init__(self, bel: np.ndarray, cells: list, x: float = 50, y: float = 450, dw: int = 30, h:
+               float = 100, spacing: float = 5):
+    self.bel = bel
+    n = len(bel)
+    self.w, self.h = n*(dw+spacing)-spacing, h
+    self.x, self.y = x, y
+    self.spacing = spacing
+    self.dw = dw
+    self.gap = self.dw+spacing
+    self.X = [self.x+i*self.gap for i in range(n)]
+    self.centers = [(c[0]+c[1])/2 for c in cells]
+    self.labels = [pyglet.text.Label(f"{self.centers[i]:.2f}", x = self.X[i], y = self.y-10,
+                                     font_size = 8, color = (0, 0, 0, 255)) for i in range(n)]
+    self.predictions = pyglet.text.Label("x", x = x+50, y = y+h+10, font_size = 12,
+                                         color = (0, 0, 0, 255))
+
+  def render(self, estimate: float):
+    gl.glPushAttrib(gl.GL_CURRENT_BIT)
+
+    for i, p in enumerate(self.bel):
+      x = self.X[i]
+      y = self.y+self.h*p
+      gl.glColor3f(0.0, 0.0, 0.0)
+      gl.glBegin(gl.GL_QUADS)
+      gl.glVertex2f(x, self.y)
+      gl.glVertex2f(x+self.dw, self.y)
+      gl.glVertex2f(x+self.dw, self.y+self.h)
+      gl.glVertex2f(x, self.y+self.h)
+      gl.glEnd()
+
+      gl.glColor3f(0.0, 1.0, 0.0)
+      gl.glBegin(gl.GL_QUADS)
+      gl.glVertex2f(x, self.y)
+      gl.glVertex2f(x+self.dw, self.y)
+      gl.glVertex2f(x+self.dw, y)
+      gl.glVertex2f(x, y)
+      gl.glEnd()
+
+    gl.glPopAttrib(gl.GL_CURRENT_BIT)
+    self.predictions.text = f"Estimate: {estimate:.3f}\tMAP: {self.centers[np.argmax(self.bel)]:.3f}"
+    self.predictions.draw()
+
+    for l in self.labels: l.draw()
 
 def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
   class DuckievillageEnv(gym_duckietown.envs.DuckietownNoisyEnv if noisy else
@@ -478,6 +522,13 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       if video_path is not None:
         self.rec = gym.wrappers.monitoring.video_recorder.VideoRecorder(self, path=video_path, enabled = True)
       else: self.rec = None
+
+      self.renderables = None
+
+    def add_renderable(self, r):
+      if self.renderables is None: self.renderables = [r]
+      else: self.renderables.append(r)
+      return self.renderables
 
     def next_view(self):
       self._view_mode = (self._view_mode + 1) % N_VIEW_MODES
@@ -625,6 +676,9 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
 
       if self.rec is not None:
         self.rec.capture_frame()
+
+      if self.renderables is not None:
+        for r in self.renderables: r.render()
 
       return img
 
