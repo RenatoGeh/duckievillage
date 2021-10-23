@@ -164,6 +164,9 @@ class TopoGraph:
   def center_pos(self, p):
     return tuple((np.array(p)+0.5)*self._r)
 
+  def uncenter_pos(self, p):
+    return p[0]/self._r-0.5, p[1]/self._r-0.5
+
   # Breadth-first search.
   def bfs(self, p, q):
     # Get closest nodes to positions.
@@ -277,6 +280,160 @@ def _create_topo_graph(w: int, h: int, tiles: dict, r: float) -> TopoGraph:
       u = M[i][j+1]
       if u is not None:
         G.add_edge(G.center_pos(t['coords']), G.center_pos(u['coords']))
+  return G
+
+class JunctionGraph(TopoGraph):
+  def __init__(self, r: float):
+    super().__init__(r)
+    self._W = {}
+
+  def add_node(self, p: tuple):
+    if p not in self._L:
+      self._L[p] = {}
+      self._W[p] = {}
+
+  def add_node_center(self, p: tuple) -> tuple:
+    u = self.center_pos(p)
+    if u not in self._L:
+      self._L[u] = {}
+      self._W[u] = {}
+      return u
+    return u
+
+  def add_edge(self, p: tuple, dp: str, q: tuple, dq: str, w: float):
+    self._L[p][dp] = q
+    self._L[q][dq] = p
+    self._W[p][dp] = w
+    self._W[q][dq] = w
+
+  def wedge(self, p: tuple, d: str) -> float:
+    """
+    Returns the weight of the edge coming out of p and going to direction d ('n', 'e', 's', 'w').
+    Returns False if node p does not exist or direction d is invalid.
+    """
+    if (p not in self._L) or (d not in self._L[p]): return False
+    return self._L[p][d]
+
+  def path(self, p: tuple, q: tuple) -> list: return self.dijkstra(p, q)
+
+  def dijkstra(self, p: tuple, q: tuple) -> list:
+    p = self.closest_node(p)
+    q = self.closest_node(q)
+    V = set()
+    D = {u: math.inf for u in self._L}
+    B = {u: None for u in self._L}
+    C = {u: None for u in self._L}
+    D[p] = 0.0
+    Q = [p]
+    while len(Q) > 0:
+      u = Q.pop(0)
+      min_d, min_v = math.inf, None
+      for di in self._L[u]:
+        v = self._L[u][di]
+        if v in V: continue
+        w = self._W[u][di]
+        d = D[u]+w
+        if min_d > d: min_d, min_v = d, v
+        if d < D[v]: D[v], B[v], C[v] = d, u, di
+      V.add(u)
+      if (q in V) or math.isinf(min_d): break
+      Q.append(min_v)
+    # Backtrack
+    u, P = q, []
+    while u != p:
+      P.append((B[u], C[u]))
+      u = B[u]
+    P.reverse()
+    return P
+
+def _trace_up_to_junction(i: int, j: int, x: int, y: int, M: list, steps: int) -> dict:
+  t = M[j][i]
+  k = t["kind"]
+  if "way" in k:
+    dx, dy = i-x, j-y
+    d = None
+    if dy != 0: d = 's' if dy < 0 else 'n'
+    if dx != 0: d = 'e' if dx < 0 else 'w'
+    # Switch x and y axis for Duckietown's simulator coordinate system.
+    return (i, j), d, steps
+  a = t["angle"]
+  if (k == "straight"):
+    if a % 2 == 0:
+      # North or South
+      # Check if not going back to start point.
+      if (i != x) or (j-1 != y): return _trace_up_to_junction(i, j-1, i, j, M, steps+1)
+      return _trace_up_to_junction(i, j+1, i, j, M, steps+1)
+    # Else, East or West
+    if (i-1 != x) or (j != y): return _trace_up_to_junction(i-1, j, i, j, M, steps+1)
+    return _trace_up_to_junction(i+1, j, i, j, M, steps+1)
+  # Else, curve.
+  if (k == "curve_left" and a == 3) or (k == "curve_right" and a == 2):
+    if (i+1 != x) or (j != y): return _trace_up_to_junction(i+1, j, i, j, M, steps+1)
+    return _trace_up_to_junction(i, j+1, i, j, M, steps+1)
+  elif (k == "curve_left" and a == 2) or (k == "curve_right" and a == 1):
+    if (i-1 != x) or (j != y): return _trace_up_to_junction(i-1, j, i, j, M, steps+1)
+    return _trace_up_to_junction(i, j+1, i, j, M, steps+1)
+  elif (k == "curve_left" and a == 1) or (k == "curve_right" and a == 0):
+    if (i != x) or (j-1 != y): return _trace_up_to_junction(i, j-1, i, j, M, steps+1)
+    return _trace_up_to_junction(i-1, j, i, j, M, steps+1)
+  #if (k == "curve_left/S") or (k == "curve_right/W"):
+  if (i+1 != x) or (j != y): return _trace_up_to_junction(i+1, j, i, j, M, steps+1)
+  return _trace_up_to_junction(i, j-1, i, j, M, steps+1)
+
+def _create_junction_graph(width: int, height: int, tiles: dict, r: float) -> TopoGraph:
+  G = JunctionGraph(r)
+  # Transpose due to wacky Duckietown map coordinate system.
+  M = [[None] * width for i in range(height)]
+  for t in tiles:
+    i, j = t["coords"]
+    M[j][i] = t
+
+  def expand_east(u: tuple, i: int, j: int):
+    v, dv, w = _trace_up_to_junction(i+1, j, i, j, M, 0)
+    G.add_edge(u, 'e', G.add_node_center(v), dv, w)
+
+  def expand_south(u: tuple, i: int, j: int):
+    v, dv, w = _trace_up_to_junction(i, j+1, i, j, M, 0)
+    G.add_edge(u, 's', G.add_node_center(v), dv, w)
+
+  def expand_west(u: tuple, i: int, j: int):
+    v, dv, w = _trace_up_to_junction(i-1, j, i, j, M, 0)
+    G.add_edge(u, 'w', G.add_node_center(v), dv, w)
+
+  def expand_north(u: tuple, i: int, j: int):
+    v, dv, w = _trace_up_to_junction(i, j-1, i, j, M, 0)
+    G.add_edge(u, 'n', G.add_node_center(v), dv, w)
+
+  for t in tiles:
+    k = t["kind"]
+    # Intersection
+    if "way" in k:
+      u = G.add_node_center(t["coords"])
+      i, j = t["coords"]
+      if "4way" in k:
+        expand_north(u, i, j)
+        expand_south(u, i, j)
+        expand_east(u, i, j)
+        expand_west(u, i, j)
+      else: # 3way
+        a = t["angle"]
+        if (k == "3way_left" and a == 2) or (k == "3way_right" and a == 0):
+          expand_west(u, i, j)
+          expand_north(u, i, j)
+          expand_south(u, i, j)
+        elif (k == "3way_left" and a == 1) or (k == "3way_right" and a == 3):
+          expand_north(u, i, j)
+          expand_west(u, i, j)
+          expand_east(u, i, j)
+        elif (k == "3way_left" and a == 0) or (k == "3way_right" and a == 2):
+          expand_north(u, i, j)
+          expand_east(u, i, j)
+          expand_south(u, i, j)
+        else: # (k == "3way_left/W") or (k == "3way_right/E")
+          expand_east(u, i, j)
+          expand_south(u, i, j)
+          expand_west(u, i, j)
+
   return G
 
 # Map of object polygons.
@@ -487,6 +644,7 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
     def __init__(self, top_down = False, cam_height = 5, enable_topomap: bool = False,
                  enable_polymap: bool = False, enable_roadsensor: bool = False,
                  enable_odometer: bool = False, enable_lightsensor: bool = False,
+                 enable_junction: bool = False,
                  video_path: str = None, **kwargs):
       super().__init__(**kwargs)
       self.horizon_color = self._perturb(self.color_sky)
@@ -494,6 +652,8 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       self.top_down = top_down
       self.topo_graph = _create_topo_graph(self.grid_width, self.grid_height, self.drivable_tiles,
                                            self.road_tile_size) if enable_topomap else None
+      self.junction_graph = _create_junction_graph(self.grid_width, self.grid_height, self.drivable_tiles, self.road_tile_size) if enable_junction else None
+
       if enable_polymap:
         self.poly_map = PolygonMap(self)
         for o in self.objects:
