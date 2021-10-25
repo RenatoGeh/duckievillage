@@ -1010,10 +1010,10 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       obj = _get_obj_props('duckiebot', x, y , True, rescale = 2.0, angle = angle)
       self.objects.append(gym_duckietown.objects.WorldObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT))
 
-    def add_cone(self, x, y = None):
+    def add_cone(self, x, y = None, scale = 1.0):
       if y is None:
         x, y = x[0], x[1]
-      obj = _get_obj_props('cone', x, y)
+      obj = _get_obj_props('cone', x, y, rescale = scale)
       c = gym_duckietown.objects.WorldObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT)
       self.objects.append(c)
       return c
