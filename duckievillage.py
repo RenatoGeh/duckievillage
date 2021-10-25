@@ -109,7 +109,8 @@ def _manhattan_dist(p, q):
 
 # Euclidean distance
 def _euclidean_dist(p, q):
-  return np.linalg.norm(np.array(q)-np.array(p))
+  dx, dy = p[0]-q[0], p[1]-q[1]
+  return dx*dx+dy*dy
 
 # A topological graph of a Duckietown map.
 # Nodes are road tiles, edges indicate whether a road tile should be connected to another.
@@ -283,9 +284,11 @@ def _create_topo_graph(w: int, h: int, tiles: dict, r: float) -> TopoGraph:
   return G
 
 class JunctionGraph(TopoGraph):
-  def __init__(self, r: float):
+  def __init__(self, r: float, M: list, env):
     super().__init__(r)
     self._W = {}
+    self._M = M
+    self._env = env
 
   def add_node(self, p: tuple):
     if p not in self._L:
@@ -314,7 +317,24 @@ class JunctionGraph(TopoGraph):
     if (p not in self._L) or (d not in self._L[p]): return False
     return self._L[p][d]
 
-  def path(self, p: tuple, q: tuple) -> list: return self.dijkstra(p, q)
+  def _nearest_tile(self, p: tuple) -> tuple:
+    x, y = self._env.nearest_drivable(p)
+    x, y = self.uncenter_pos((x, y))
+
+    return int(x), int(y)
+
+  def path(self, p: tuple, q: tuple) -> list:
+    i, j = self._nearest_tile(p)
+    x, y = self._env.pointing_direction()
+    v, _, _ = _trace_up_to_junction(i, j, i-x, j-y, self._M, 0)
+
+    gx, gy = self._nearest_tile(q)
+    if "way" not in self._M[gy][gx]["kind"]:
+      q, d, _ = _trace_junction_from(gx, gy, self._M)
+      P = self.dijkstra(self.center_pos(v), q)
+      P.append((self.center_pos(q), d))
+      return P
+    return self.dijkstra(self.center_pos(v), q)
 
   def dijkstra(self, p: tuple, q: tuple) -> list:
     p = self.closest_node(p)
@@ -346,7 +366,35 @@ class JunctionGraph(TopoGraph):
     P.reverse()
     return P
 
-def _trace_up_to_junction(i: int, j: int, x: int, y: int, M: list, steps: int) -> dict:
+def _trace_junction_from(i: int, j: int, M: list) -> (tuple, str, int):
+  """ Traces closest intersection from tile. """
+  t = M[j][i]
+  k, a = t["kind"], t["angle"]
+  X, Y = None, None
+  if (k == "straight"):
+    if a % 2 == 0:
+      # North or South
+      X = _trace_up_to_junction(i, j-1, i, j, M, 0)
+      Y = _trace_up_to_junction(i, j+1, i, j, M, 0)
+    else: # East or West
+      X = _trace_up_to_junction(i-1, j, i, j, M, 0)
+      Y = _trace_up_to_junction(i+1, j, i, j, M, 0)
+  elif (k == "curve_left" and a == 3) or (k == "curve_right" and a == 2):
+    X = _trace_up_to_junction(i+1, j, i, j, M, 0)
+    Y = _trace_up_to_junction(i, j+1, i, j, M, 0)
+  elif (k == "curve_left" and a == 2) or (k == "curve_right" and a == 1):
+    X = _trace_up_to_junction(i-1, j, i, j, M, 0)
+    Y = _trace_up_to_junction(i, j+1, i, j, M, 0)
+  elif (k == "curve_left" and a == 1) or (k == "curve_right" and a == 0):
+    X = _trace_up_to_junction(i, j-1, i, j, M, 0)
+    Y = _trace_up_to_junction(i-1, j, i, j, M, 0)
+  else:
+    X = _trace_up_to_junction(i+1, j, i, j, M, 0)
+    Y = _trace_up_to_junction(i, j-1, i, j, M, 0)
+  v, d, w = Y if X[2] > Y[2] else X
+  return v, d, w
+
+def _trace_up_to_junction(i: int, j: int, x: int, y: int, M: list, steps: int) -> (tuple, str, int):
   t = M[j][i]
   k = t["kind"]
   if "way" in k:
@@ -380,10 +428,10 @@ def _trace_up_to_junction(i: int, j: int, x: int, y: int, M: list, steps: int) -
   if (i+1 != x) or (j != y): return _trace_up_to_junction(i+1, j, i, j, M, steps+1)
   return _trace_up_to_junction(i, j-1, i, j, M, steps+1)
 
-def _create_junction_graph(width: int, height: int, tiles: dict, r: float) -> TopoGraph:
-  G = JunctionGraph(r)
-  # Transpose due to wacky Duckietown map coordinate system.
+def _create_junction_graph(width: int, height: int, tiles: dict, r: float, env) -> TopoGraph:
   M = [[None] * width for i in range(height)]
+  G = JunctionGraph(r, M, env)
+  # Transpose due to wacky Duckietown map coordinate system.
   for t in tiles:
     i, j = t["coords"]
     M[j][i] = t
@@ -636,6 +684,18 @@ class Histogram:
 
     for l in self.labels: l.draw()
 
+class GPS:
+  def __init__(self, env, sigma: float = -1):
+    """ Constructs a GPS which has a(n) (isotropic) gaussian error centered at the true position
+    and fixed standard deviation given by sigma. """
+    self._env = env
+    if sigma <= 0: sigma = 0.01
+    self._sigma = (sigma, sigma)
+
+  def track(self) -> np.ndarray:
+    """ Returns the position of the agent with an error. """
+    return np.random.normal(loc = self._env.get_position(), scale = self._sigma)
+
 def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
   class DuckievillageEnv(gym_duckietown.envs.DuckietownNoisyEnv if noisy else
                          gym_duckietown.simulator.Simulator if raw_motor_input else gym_duckietown.envs.DuckietownEnv):
@@ -644,7 +704,7 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
     def __init__(self, top_down = False, cam_height = 5, enable_topomap: bool = False,
                  enable_polymap: bool = False, enable_roadsensor: bool = False,
                  enable_odometer: bool = False, enable_lightsensor: bool = False,
-                 enable_junction: bool = False,
+                 enable_junction: bool = False, enable_gps: bool = False,
                  video_path: str = None, **kwargs):
       super().__init__(**kwargs)
       self.horizon_color = self._perturb(self.color_sky)
@@ -652,7 +712,9 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       self.top_down = top_down
       self.topo_graph = _create_topo_graph(self.grid_width, self.grid_height, self.drivable_tiles,
                                            self.road_tile_size) if enable_topomap else None
-      self.junction_graph = _create_junction_graph(self.grid_width, self.grid_height, self.drivable_tiles, self.road_tile_size) if enable_junction else None
+      self.junction_graph = _create_junction_graph(self.grid_width, self.grid_height,
+                                                   self.drivable_tiles, self.road_tile_size, self) if enable_junction else None
+      self.gps = GPS(self) if enable_gps else None
 
       if enable_polymap:
         self.poly_map = PolygonMap(self)
@@ -714,6 +776,16 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       if j is None:
         i, j = i[0], i[1]
       return (np.array([i, j])+0.5)*self.road_tile_size
+
+    def nearest_drivable(self, x: float, y: float = None) -> (float, float):
+      if y is None: x, y = x[0], x[1]
+      min_d, min_p = math.inf, None
+      for t in self.drivable_tiles:
+        a, b = t["coords"]
+        cx, cy = (a+0.5)*self.road_tile_size, (b+0.5)*self.road_tile_size
+        d = (cx-x)*(cx-x)+(cy-y)*(cy-y)
+        if min_d > d: min_d, min_p = d, (cx, cy)
+      return min_p
 
     def get_position(self):
       return np.delete(self.cur_pos, 1)
@@ -859,6 +931,22 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
         self.odometer.update(metrics['omega_l'], metrics['omega_r'], metrics['radius'])
       return obs, reward, done, info
 
+    def pointing_direction(self) -> tuple:
+      q = math.pi*0.25
+      theta = self.cur_angle
+      # East
+      if q >= theta > -q:
+        return 1, 0
+      t = math.pi*0.75
+      # North
+      if t >= theta > q:
+        return 0, -1
+      # South
+      if -q >= theta > -t:
+        return 0, 1
+      # West
+      return -1, 0
+
     def get_dir_vec(self):
       return gym_duckietown.simulator.get_dir_vec(self.cur_angle)
 
@@ -867,23 +955,26 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
 
     # We have to convert from window positions to actual Duckietown coordinates.
     def convert_coords(self, x: int, y: int) -> (float, float):
-      # Maps are up to grid_width tiles high. Assuming square tiles and invariant tile dimensions:
-      hx = self.grid_width * self.road_tile_size
-      hy = self.grid_height * self.road_tile_size
-      rx =  hx / WINDOW_WIDTH
-      ry =  hy / WINDOW_HEIGHT
-      # Do some mathemagics.
-      return x*rx, hy - y*ry
+      w = self.grid_width+3
+      h = self.grid_height+2
+      dw = WINDOW_WIDTH/w
+      dh = WINDOW_HEIGHT/h
+      x -= 1.5*dw
+      y += dh
+      x, y = x/dw, (WINDOW_HEIGHT-y) / dh
+      return (x+0.5)*self.road_tile_size, (y+0.5)*self.road_tile_size
 
     # The inverse transformation of the above.
     def unconvert_coords(self, x: float, y: float = None) -> (int, int):
       if y is None:
         x, y = x[0], x[1]
-      hx = self.grid_width * self.road_tile_size
-      hy = self.grid_height * self.road_tile_size
-      rx = WINDOW_WIDTH / hx
-      ry = WINDOW_HEIGHT / hy
-      return round(x*rx), round(WINDOW_HEIGHT - y*ry)
+      x, y = x/self.road_tile_size-0.5, y/self.road_tile_size-0.5
+      w = self.grid_width+3
+      h = self.grid_height+2
+      dw = WINDOW_WIDTH/w
+      dh = WINDOW_HEIGHT/h
+      x, y = dw*x, dh*y-WINDOW_HEIGHT
+      return int(x + 1.5*dw), int(y - dh)
 
     def add_duckie(self, x, y = None, static = True, optional = False):
       if y is None:
@@ -922,9 +1013,10 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
     def add_cone(self, x, y = None):
       if y is None:
         x, y = x[0], x[1]
-      obj = _get_obj_props('cone', x, y, True)
-      self.objects.append(gym_duckietown.objects.WorldObj(obj, False,
-                                                          gym_duckietown.simulator.SAFETY_RAD_MULT))
+      obj = _get_obj_props('cone', x, y)
+      c = gym_duckietown.objects.WorldObj(obj, False, gym_duckietown.simulator.SAFETY_RAD_MULT)
+      self.objects.append(c)
+      return c
 
     def add_walking_duckie(self, x, y = None):
       if y is None:
