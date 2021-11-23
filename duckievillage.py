@@ -198,8 +198,10 @@ class TopoGraph:
     # Could not find a path between the two vertices: graph is disconnected.
     return None
 
+  def path(self, p, q): return self.bfs(p, q)
+
   # A-star path finding.
-  def path(self, p, q):
+  def astar(self, p, q):
     # Get closest nodes to positions.
     p = self.closest_node(p)
     q = self.closest_node(q)
