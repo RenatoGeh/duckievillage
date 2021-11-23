@@ -1,0 +1,103 @@
+tiles:
+- [grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass]
+- [grass,         grass,         curve_right/N, straight/W,    straight/W,    straight/W,    3way_right/E,  straight/W,    curve_left/N,  asphalt,       asphalt,       grass]
+- [grass,         grass,         straight/N,    asphalt,       asphalt,       asphalt,       straight/N,    asphalt,       straight/N,    asphalt,       asphalt,       grass]
+- [grass,         grass,         curve_right/W, straight/W,    straight/W,    straight/W,    4way,          straight/W,    3way_left/N,   asphalt,       asphalt,       grass]
+- [grass,         grass,         grass,         grass,         grass,         grass,         straight/N,    grass,         straight/N,    asphalt,       asphalt,       grass]
+- [grass,         grass,         curve_right/N, straight/W,    curve_left/N,  grass,         straight/N,    grass,         straight/N,    asphalt,       asphalt,       grass]
+- [grass,         curve_right/N, curve_left/E,  asphalt,       curve_right/W, straight/W,    4way,          straight/W,    4way,          straight/W,    curve_left/N,  grass]
+- [grass,         straight/N,    asphalt,       asphalt,       asphalt,       asphalt,       straight/N,    grass,         straight/N,    grass,         straight/N,    grass]
+- [grass,         straight/N,    asphalt,       asphalt,       asphalt,       asphalt,       curve_right/W, straight/W,    4way,          straight/W,    3way_left/N,   grass]
+- [grass,         curve_right/W, straight/W,    straight/W,    straight/W,    curve_left/N,  asphalt,       asphalt,       straight/N,    asphalt,       straight/N,    grass]
+- [grass,         grass,         grass,         grass,         grass,         curve_right/W, straight/W,    straight/W,    3way_right/W,  straight/W,    curve_left/E,  grass]
+- [grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass]
+
+
+objects:
+
+- kind: tree
+  pos: [2.18, 11.66]
+  rotate: 219.42
+  height: 0.25
+
+- kind: tree
+  pos: [10.5, 11.3]
+  rotate: 193.52
+  height: 0.25
+
+- kind: tree
+  pos: [0.37, 6.5600000000000005]
+  rotate: 2.33
+  height: 0.25
+
+- kind: cone
+  pos: [10.77, 1.2]
+  rotate: 281.41
+  height: 0.08
+
+- kind: tree
+  pos: [0.55, 4.19]
+  rotate: 106.54
+  height: 0.25
+
+- kind: cone
+  pos: [3.44, 7.27]
+  rotate: 91.66
+  height: 0.08
+
+- kind: cone
+  pos: [4.08, 7.5]
+  rotate: 309.31
+  height: 0.08
+
+- kind: cone
+  pos: [4.06, 5.76]
+  rotate: 97.93
+  height: 0.08
+
+- kind: barrier
+  pos: [7.16, 6.75]
+  rotate: 90
+  height: 0.08
+
+- kind: truck
+  pos: [8.75, 7.23]
+  rotate: 90
+  height: 0.2
+
+- kind: cone
+  pos: [10.27, 10.7]
+  rotate: 318.34000000000003
+  height: 0.08
+
+- kind: duckiebot
+  pos: [6.64, 10.75]
+  rotate: 0
+  height: 0.1
+
+- kind: cone
+  pos: [3.46, 9.73]
+  rotate: 15.2
+  height: 0.08
+
+- kind: duckie
+  pos: [6.63, 0.18]
+  rotate: 243.73
+  height: 0.0416
+
+- kind: duckie
+  pos: [5.75, 10.0]
+  rotate: 180.0
+  height: 0.04
+
+- kind: duckie
+  pos: [4.19, 1.25]
+  rotate: 90
+  height: 0.0341
+
+- kind: duckie
+  pos: [8.84, 11.34]
+  rotate: 221.03
+  height: 0.0461
+
+tile_size: 0.585

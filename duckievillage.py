@@ -684,6 +684,72 @@ class Histogram:
 
     for l in self.labels: l.draw()
 
+class Evaluator:
+  def __init__(self, env):
+    env.max_steps = math.inf
+    self._env = env
+    self._log = {}
+
+  def infraction(self, t: str, penalty: float, warning: str):
+    print(warning)
+    if t not in self._log: self._log[t] = []
+    self._log[t].append((penalty, warning))
+
+  def track(self):
+    r = self._env.penalization(self._env.cur_pos, self._env.cur_angle)
+    if r is None: return
+    if r == "out":
+      self.infraction(r, -1, "Mailduck has gone off-road!")
+    elif r == "crash":
+      self.infraction(r, -1, "Mailduck has crashed into something!")
+
+class Mailbox:
+  """
+    Mailbox tracks all packages (to be) delivered.
+
+    Function mail returns a list where each element is a triple representing a package:
+
+      (d, x, y)
+
+    d - whether this package has been delivered
+    x - (x-axis) position of where this package should be delivered
+    y - (y-axis) position of where this package should be delivered
+
+    The id of each package is its list index.
+
+    Function deliver causes the robot to attempt a delivery from the current position. If the robot
+    is close enough to the target, then the attempt is successful and the item is set as delivered.
+  """
+
+  def parse(self, f:str) -> list:
+    L = []
+    with open(f) as file:
+      file.readline() # Skip map name
+      while (t := file.readline().strip().split()):
+        x, y = int(t[0]), int(t[1])
+        L.append([False, (x+0.5)*self._env.road_tile_size, (y+0.5)*self._env.road_tile_size])
+    return L
+
+  def __init__(self, env, in_file: str):
+    self._env = env
+    self._mailing_list = self.parse(in_file)
+
+  def mail(self):
+    return self._mailing_list
+
+  def deliver(self, i: int) -> bool:
+    x, y = self._env.get_position()
+    d, a, b = self._mailing_list[i]
+    if d:
+      self._env.eval.infraction("mail-deliver", -0.5, "Attempted to deliver already delivered package!")
+      return False
+    dist = (x-a)*(x-a)+(y-b)*(y-b)
+    if dist > 0.05:
+      self._env.eval.infraction("mail-dist", -0.5, "Attempted to deliver package from out of the receiver's influence radius!")
+      return False
+    self._mailing_list[i][0] = True
+    return True
+
 class GPS:
   def __init__(self, env, sigma: float = -1):
     """ Constructs a GPS which has a(n) (isotropic) gaussian error centered at the true position
@@ -705,7 +771,8 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
                  enable_polymap: bool = False, enable_roadsensor: bool = False,
                  enable_odometer: bool = False, enable_lightsensor: bool = False,
                  enable_junction: bool = False, enable_gps: bool = False,
-                 video_path: str = None, **kwargs):
+                 enable_eval: bool = False, enable_mailbox: bool = False,
+                 mailbox_file: str = None, video_path: str = None, **kwargs):
       super().__init__(**kwargs)
       self.horizon_color = self._perturb(self.color_sky)
       self.cam_fov_y = gym_duckietown.simulator.CAMERA_FOV_Y
@@ -715,6 +782,9 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       self.junction_graph = _create_junction_graph(self.grid_width, self.grid_height,
                                                    self.drivable_tiles, self.road_tile_size, self) if enable_junction else None
       self.gps = GPS(self) if enable_gps else None
+
+      self.mailbox = Mailbox(self, mailbox_file) if enable_mailbox else None
+      self.eval = Evaluator(self) if enable_eval else None
 
       if enable_polymap:
         self.poly_map = PolygonMap(self)
