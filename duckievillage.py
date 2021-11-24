@@ -764,6 +764,11 @@ class GPS:
     """ Returns the position of the agent with an error. """
     return np.random.normal(loc = self._env.get_position(), scale = self._sigma)
 
+class Mileage:
+  def __init__(self): self._mileage = 0
+  def update(self, l: float, r: float): self._mileage += l+r
+  def mileage(self): return self._mileage
+
 def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
   class DuckievillageEnv(gym_duckietown.envs.DuckietownNoisyEnv if noisy else
                          gym_duckietown.simulator.Simulator if raw_motor_input else gym_duckietown.envs.DuckietownEnv):
@@ -774,7 +779,8 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
                  enable_odometer: bool = False, enable_lightsensor: bool = False,
                  enable_junction: bool = False, enable_gps: bool = False,
                  enable_eval: bool = False, enable_mailbox: bool = False,
-                 mailbox_file: str = None, video_path: str = None, **kwargs):
+                 mailbox_file: str = None, enable_mileage: bool = False,
+                 video_path: str = None, **kwargs):
       super().__init__(**kwargs)
       self.horizon_color = self._perturb(self.color_sky)
       self.cam_fov_y = gym_duckietown.simulator.CAMERA_FOV_Y
@@ -787,6 +793,7 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
 
       self.mailbox = Mailbox(self, mailbox_file) if enable_mailbox else None
       self.eval = Evaluator(self) if enable_eval else None
+      self.mileage = Mileage() if enable_mileage else None
 
       if enable_polymap:
         self.poly_map = PolygonMap(self)
@@ -1001,6 +1008,7 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       if self.odometer is not None:
         metrics = info['DuckietownEnv']
         self.odometer.update(metrics['omega_l'], metrics['omega_r'], metrics['radius'])
+      if self.mileage is not None: self.mileage.update(pwm_left, pwm_right)
       return obs, reward, done, info
 
     def pointing_direction(self) -> tuple:
