@@ -727,7 +727,8 @@ class Mailbox:
     L = []
     with open(f) as file:
       file.readline() # Skip map name
-      while (t := file.readline().strip().split()):
+      for line in file:
+        t = line.strip().split()
         x, y = int(t[0]), int(t[1])
         L.append([False, (x+0.5)*self._env.road_tile_size, (y+0.5)*self._env.road_tile_size])
     return L
