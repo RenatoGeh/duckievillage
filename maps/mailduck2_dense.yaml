@@ -48,19 +48,9 @@ objects:
   rotate: 0
   height: 0.18
 
-- kind: sign_t_light_ahead
-  pos: [5.85, 2.95]
-  rotate: 270
-  height: 0.18
-
 - kind: sign_4_way_intersect
   pos: [7.05, 2.95]
   rotate: 270
-  height: 0.18
-
-- kind: sign_t_light_ahead
-  pos: [7.05, 2.85]
-  rotate: 180
   height: 0.18
 
 - kind: sign_4_way_intersect
@@ -68,19 +58,9 @@ objects:
   rotate: 90
   height: 0.18
 
-- kind: sign_t_light_ahead
-  pos: [5.95, 4.15]
-  rotate: 0
-  height: 0.18
-
 - kind: sign_4_way_intersect
   pos: [7.05, 4.05]
   rotate: 180
-  height: 0.18
-
-- kind: sign_t_light_ahead
-  pos: [7.15, 4.05]
-  rotate: 90
   height: 0.18
 
 - kind: sign_right_T_intersect
@@ -148,19 +128,9 @@ objects:
   rotate: 0
   height: 0.18
 
-- kind: sign_t_light_ahead
-  pos: [2.85, 6.95]
-  rotate: 270
-  height: 0.18
-
 - kind: sign_4_way_intersect
   pos: [4.05, 6.95]
   rotate: 270
-  height: 0.18
-
-- kind: sign_t_light_ahead
-  pos: [4.05, 6.85]
-  rotate: 180
   height: 0.18
 
 - kind: sign_4_way_intersect
@@ -168,19 +138,9 @@ objects:
   rotate: 90
   height: 0.18
 
-- kind: sign_t_light_ahead
-  pos: [2.95, 8.15]
-  rotate: 0
-  height: 0.18
-
 - kind: sign_4_way_intersect
   pos: [4.05, 8.05]
   rotate: 180
-  height: 0.18
-
-- kind: sign_t_light_ahead
-  pos: [4.15, 8.05]
-  rotate: 90
   height: 0.18
 
 - kind: sign_4_way_intersect
@@ -188,19 +148,9 @@ objects:
   rotate: 0
   height: 0.18
 
-- kind: sign_t_light_ahead
-  pos: [4.85, 6.95]
-  rotate: 270
-  height: 0.18
-
 - kind: sign_4_way_intersect
   pos: [6.05, 6.95]
   rotate: 270
-  height: 0.18
-
-- kind: sign_t_light_ahead
-  pos: [6.05, 6.85]
-  rotate: 180
   height: 0.18
 
 - kind: sign_4_way_intersect
@@ -208,19 +158,9 @@ objects:
   rotate: 90
   height: 0.18
 
-- kind: sign_t_light_ahead
-  pos: [4.95, 8.15]
-  rotate: 0
-  height: 0.18
-
 - kind: sign_4_way_intersect
   pos: [6.05, 8.05]
   rotate: 180
-  height: 0.18
-
-- kind: sign_t_light_ahead
-  pos: [6.15, 8.05]
-  rotate: 90
   height: 0.18
 
 - kind: sign_right_T_intersect
@@ -263,11 +203,6 @@ objects:
   rotate: 90
   height: 0.5
 
-- kind: sign_do_not_enter
-  pos: [4.4, 6.82]
-  rotate: 9.02
-  height: 0.18
-
 - kind: barrier
   pos: [6.82, 8.25]
   rotate: 95.94
@@ -288,11 +223,6 @@ objects:
   rotate: 288.19
   height: 0.25
 
-- kind: sign_t_light_ahead
-  pos: [4.76, 6.04]
-  rotate: 348.77
-  height: 0.18
-
 - kind: bus
   pos: [6.53, 9.23]
   rotate: 255.88
@@ -306,11 +236,6 @@ objects:
 - kind: cone
   pos: [9.91, 7.22]
   rotate: 148.69
-  height: 0.08
-
-- kind: cone
-  pos: [1.05, 6.49]
-  rotate: 73.58
   height: 0.08
 
 - kind: barrier
@@ -332,21 +257,6 @@ objects:
   pos: [5.24, 9.71]
   rotate: 288.88
   height: 0.08
-
-- kind: cone
-  pos: [3.64, 6.35]
-  rotate: 99.18
-  height: 0.08
-
-- kind: sign_t_light_ahead
-  pos: [1, 1]
-  rotate: 180.0
-  height: 0.18
-
-- kind: sign_t_light_ahead
-  pos: [1.0, 0.0]
-  rotate: 0.0
-  height: 0.18
 
 - kind: barrier
   pos: [4.97, 3.25]

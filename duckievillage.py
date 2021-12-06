@@ -129,6 +129,24 @@ class TopoGraph:
       return False
     return q in self._L[p]
 
+  # Remove undirected edge p<->q by removing both edges p->q and q->p.
+  def remove_edge(self, p, q):
+    if self.invalid_tile(p, q): return
+    self._L[p].pop(q, None)
+    self._L[q].pop(p, None)
+
+  # Removes directed edge p to q.
+  def remove_dir_edge(self, p, q):
+    if self.invalid_tile(p, q): return
+    self._L[p].pop(q, None)
+
+  # Remove node p and all edges coming from and to p.
+  def remove_node(self, p):
+    if p not in self._L: return
+    self._L.pop(p, None)
+    for n in self._L:
+      self._L[n].pop(p, None)
+
   # Adds a node to the graph. Node must be a tuple! Convert your numpy.ndarray to tuple first.
   def add_node(self, p):
     if p not in self._L:
@@ -702,8 +720,23 @@ class Evaluator:
     if r is None: return
     if r == "out":
       self.infraction(r, -1, "Mailduck has gone off-road!")
-    elif r == "crash":
+    if r == "crash":
       self.infraction(r, -1, "Mailduck has crashed into something!")
+
+def _draw_circle(x, y, color, radius=0.1, sides=8, infill=False):
+  gl.glPushAttrib(gl.GL_CURRENT_BIT)
+  gl.glColor3f(*color)
+  if infill:
+    gl.glBegin(gl.GL_POLYGON)
+  else:
+    gl.glBegin(gl.GL_LINE_LOOP)
+  pi2 = np.pi * 2
+  for i in range(sides):
+    dx = radius*np.cos(i*pi2/sides)
+    dy = radius*np.sin(i*pi2/sides)
+    gl.glVertex3f(x+dx, 0.01, y+dy)
+  gl.glEnd()
+  gl.glPopAttrib(gl.GL_CURRENT_BIT)
 
 class Mailbox:
   """
@@ -736,6 +769,14 @@ class Mailbox:
   def __init__(self, env, in_file: str):
     self._env = env
     self._mailing_list = self.parse(in_file)
+    self._delivered_color = (0, 1, 0)
+    self._todeliver_color = (0, 0, 1)
+
+  def render(self):
+    for (d, x, y) in self._mailing_list:
+      color = self._delivered_color if d else self._todeliver_color
+      gl.glDisable(gl.GL_TEXTURE_2D)
+      _draw_circle(x, y, color, infill=True)
 
   def mail(self):
     return self._mailing_list
@@ -767,7 +808,7 @@ class GPS:
 
 class Mileage:
   def __init__(self): self._mileage = 0
-  def update(self, l: float, r: float): self._mileage += l+r
+  def update(self, dt: float): self._mileage += dt
   def mileage(self): return self._mileage
 
 def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
@@ -879,6 +920,7 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
         self.img_array_human,
         top_down = True,
         segment=segment,
+        callback = (lambda: self.mailbox.render()) if self.mailbox is not None else None,
       )
 
     def front(self, segment = False):
@@ -890,6 +932,7 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
         self.img_array_human,
         top_down = False,
         segment=segment,
+        callback = (lambda: self.mailbox.render()) if self.mailbox is not None else None,
       )
 
     def render(self, mode: str = "human", close: bool = False, segment: bool = False, text: str = ""):
@@ -1009,7 +1052,6 @@ def create_env(raw_motor_input: bool = True, noisy: bool = False, **kwargs):
       if self.odometer is not None:
         metrics = info['DuckietownEnv']
         self.odometer.update(metrics['omega_l'], metrics['omega_r'], metrics['radius'])
-      if self.mileage is not None: self.mileage.update(pwm_left, pwm_right)
       return obs, reward, done, info
 
     def pointing_direction(self) -> tuple:

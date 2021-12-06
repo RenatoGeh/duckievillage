@@ -358,11 +358,6 @@ objects:
   rotate: 49.88
   height: 0.08
 
-- kind: barrier
-  pos: [5.75, 5.7]
-  rotate: 180
-  height: 0.08
-
 - kind: duckie
   pos: [9.25, 8.2]
   rotate: 180
