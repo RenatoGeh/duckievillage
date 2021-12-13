@@ -279,3 +279,5 @@ objects:
   height: 0.0414
 
 tile_size: 0.585
+
+start_tile: [1,1]
