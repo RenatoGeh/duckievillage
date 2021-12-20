@@ -13,3 +13,6 @@ tiles:
 - [grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass,         grass]
 
 tile_size: 0.585
+
+start_tile: [7,6]
+start_pose: [[0.15,0,0.15],0.14]
