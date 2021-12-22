@@ -1,12 +1,12 @@
 tiles:
-- [grass,         grass,         curve_right/N, straight/W,    3way_right/E,  straight/W,    3way_right/E,  straight/W,    straight/W,    curve_left/N]
+- [grass,         grass,         curve_right/N, straight/W,    3way_left/W,   straight/W,    3way_left/W,   straight/W,    straight/W,    curve_left/N]
 - [curve_right/N, straight/W,    curve_left/E,  grass,         straight/N,    grass,         straight/N,    asphalt,       asphalt,       straight/N]
 - [straight/N,    grass,         grass,         curve_right/N, curve_left/E,  grass,         straight/N,    asphalt,       asphalt,       straight/N]
 - [curve_right/W, curve_left/N,  grass,         straight/N,    grass,         grass,         curve_right/W, curve_left/N,  asphalt,       straight/N]
 - [asphalt,       curve_right/W, straight/W,    4way,          straight/W,    curve_left/N,  grass,         straight/N,    asphalt,       straight/N]
 - [asphalt,       asphalt,       asphalt,       straight/N,    grass,         curve_right/W, straight/W,    4way,          straight/W,    curve_left/E]
 - [curve_right/N, straight/W,    straight/W,    3way_left/N,   grass,         grass,         grass,         straight/N,    asphalt,       asphalt]
-- [straight/N,    grass,         grass,         straight/N,    grass,         grass,         grass,         3way_right/N,  straight/W,    curve_left/N]
+- [straight/N,    grass,         grass,         straight/N,    grass,         grass,         grass,         3way_left/S,   straight/W,    curve_left/N]
 - [straight/N,    grass,         curve_right/N, curve_left/E,  grass,         grass,         grass,         straight/N,    grass,         straight/N]
 - [curve_right/W, straight/W,    curve_left/E,  asphalt,       grass,         grass,         grass,         curve_right/W, straight/W,    curve_left/E]
 

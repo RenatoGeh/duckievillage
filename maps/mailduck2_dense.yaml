@@ -1,14 +1,14 @@
 tiles:
 - [curve_right/N, straight/W,    straight/W,    straight/W,    straight/W,    straight/W,    curve_left/N,  asphalt,       asphalt,       asphalt]
 - [straight/N,    grass,         grass,         grass,         grass,         grass,         straight/N,    asphalt,       asphalt,       asphalt]
-- [3way_right/N,  straight/W,    straight/W,    straight/W,    curve_left/N,  grass,         straight/N,    asphalt,       asphalt,       asphalt]
+- [3way_left/S,   straight/W,    straight/W,    straight/W,    curve_left/N,  grass,         straight/N,    asphalt,       asphalt,       asphalt]
 - [straight/N,    grass,         grass,         grass,         curve_right/W, straight/W,    4way,          straight/W,    curve_left/N,  asphalt]
-- [3way_right/N,  straight/W,    curve_left/N,  grass,         grass,         grass,         straight/N,    grass,         straight/N,    asphalt]
+- [3way_left/S,   straight/W,    curve_left/N,  grass,         grass,         grass,         straight/N,    grass,         straight/N,    asphalt]
 - [straight/N,    asphalt,       curve_right/W, curve_left/N,  grass,         curve_right/N, curve_left/E,  grass,         straight/N,    asphalt]
 - [straight/N,    asphalt,       asphalt,       straight/N,    grass,         straight/N,    asphalt,       curve_right/N, curve_left/E,  asphalt]
-- [3way_right/N,  straight/W,    straight/W,    4way,          straight/W,    4way,          straight/W,    curve_left/E,  grass,         asphalt]
+- [3way_left/S,   straight/W,    straight/W,    4way,          straight/W,    4way,          straight/W,    curve_left/E,  grass,         asphalt]
 - [straight/N,    asphalt,       asphalt,       straight/N,    grass,         straight/N,    asphalt,       asphalt,       grass,         asphalt]
-- [curve_right/W, straight/W,    straight/W,    3way_right/W,  straight/W,    curve_left/E,  asphalt,       asphalt,       grass,         asphalt]
+- [curve_right/W, straight/W,    straight/W,    3way_left/E,   straight/W,    curve_left/E,  asphalt,       asphalt,       grass,         asphalt]
 
 
 objects:
