@@ -5,7 +5,7 @@ pyzmq
 numpy
 PyYAML
 termcolor
-opencv-python
+opencv-python==4.5.5.64
 matplotlib
 scikit-learn
 scikit-image

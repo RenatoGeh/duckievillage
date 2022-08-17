@@ -20,9 +20,9 @@ TF_OK="${TF_BOLD}${TF_GREEN}"
 PROTO_PREFIX_SSH="ssh://git@"
 PROTO_PREFIX_HTTPS="https://"
 
-PROTO_PREFIX_GIT="${PROTO_PREFIX_SSH}"
+#PROTO_PREFIX_GIT="${PROTO_PREFIX_SSH}"
 # Uncomment to use HTTPS instead of SSH
-#PROTO_PREFIX_GIT="${PROTO_PREFIX_HTTPS}"
+PROTO_PREFIX_GIT="${PROTO_PREFIX_HTTPS}"
 
 # Exits script on error and print offending line.
 function exit_with_error {
